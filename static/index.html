@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQL Validation Portal</title>
+
+  <!-- EXTERNAL CSS -->
+  <link rel="stylesheet" href="static/main.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>SQL Validation Portal</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+      
+      <div class="form-group">
+        <label for="name">Employee Name</label>
+        <input type="text" name="name" id="name" placeholder="Enter your name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email ID</label>
+        <input type="email" name="email" id="email" placeholder="Enter your email" required>
+      </div>
+
+      <div class="form-group">
+        <label for="team">Team</label>
+        <input type="text" name="team" id="team" placeholder="Enter your team name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="cr_number">CR Number</label>
+        <input type="text" name="cr_number" id="cr_number" placeholder="Enter CR Number" required>
+      </div>
+
+      <div class="form-group" style="width:100%;">
+        <label for="sqlFile">Upload SQL File (.txt only)</label>
+        <input type="file" name="sqlFile" id="sqlFile" accept=".txt" required>
+      </div>
+
+      <!-- BUTTON ROW -->
+      <div class="button-row">
+        <button type="submit" id="validateBtn" class="primary-btn">Validate SQL</button>
+
+        <button 
+          type="button"
+          id="topDownloadBtn"
+          class="download-btn"
+          style="display:none;">
+          📄 Download PDF
+        </button>
+      </div>
+
+    </form>
+
+    <div class="results" id="results">
+      <h3>Validation Results:</h3>
+      <div id="validationOutput"></div>
+    </div>
+
+  </div>
+
+  <!-- EXTERNAL JS -->
+  <script src="static/main.js"></script>
+</body>
+</html>

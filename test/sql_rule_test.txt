@@ -1,0 +1,47 @@
+-- TEST FILE FOR ALL RULES
+
+-- 1. DML must be followed by COMMIT
+INSERT INTO emp VALUES (1, 'A');
+UPDATE emp SET name='B' WHERE id=1;
+DELETE FROM emp WHERE id=2;
+COMMIT;
+
+-- invalid DML (missing commit)
+INSERT INTO emp VALUES (2, 'Missing');
+
+-- 2. DDL must NOT be followed by COMMIT
+CREATE TABLE good_table (id NUMBER);
+ALTER TABLE good_table ADD (c VARCHAR2(20));
+DROP TABLE good_table;
+
+-- invalid DDL (followed by COMMIT)
+CREATE TABLE bad_commit_table (id NUMBER);
+COMMIT;
+
+-- 3. GRANT/REVOKE must NOT be followed by COMMIT
+GRANT SELECT ON good_table TO PUBLIC;
+REVOKE SELECT ON good_table FROM PUBLIC;
+
+-- invalid GRANT (followed by commit)
+GRANT UPDATE ON good_table TO PUBLIC;
+COMMIT;
+
+-- 4. PL/SQL blocks must end with slash
+DECLARE
+    v NUMBER := 10;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(v);
+END;
+/
+
+-- invalid PL/SQL block (missing slash)
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Missing slash here');
+END;
+
+-- 5. Object name length > 30 must be flagged
+CREATE TABLE this_is_a_very_long_table_name_exceeding_limit_abcdefgh (id NUMBER);
+
+-- 6. Backup tables must end with _TBD
+CREATE TABLE data_backup (id NUMBER);          -- invalid
+CREATE TABLE sales_backup_TBD (id NUMBER);     -- valid

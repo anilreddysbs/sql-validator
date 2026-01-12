@@ -1,0 +1,267 @@
+Overview
+
+This document describes every validation rule implemented in the SQL Validator engine.
+
+Each rule includes:
+- Purpose
+- Exact logic
+- Success conditions
+- Failure conditions
+- Edge cases
+- Examples
+
+These rules apply to Oracle-style SQL & PL/SQL.
+
+1️⃣ DML Commit Rule
+
+File: validator/rules/dml_commit.py
+Rule ID: dml_commit
+
+✅ Purpose
+Ensure that all DML statements explicitly commit their changes.
+
+🔍 What it checks
+The following statements must be followed by a COMMIT:
+- INSERT
+- UPDATE
+- DELETE
+
+✔ PASS Examples
+DELETE FROM emp WHERE id=1;
+COMMIT;
+
+❌ FAIL Examples
+UPDATE emp SET salary=5000 WHERE id=1;
+-- missing COMMIT
+
+2️⃣ DDL No-Commit Rule
+
+File: validator/rules/ddl_no_commit.py
+Rule ID: ddl_no_commit
+
+✅ Purpose
+Oracle auto-commits DDL. Explicit COMMIT after DDL is unnecessary and restricted.
+
+🔍 What it checks
+The following must NOT be followed by a COMMIT:
+- CREATE
+- ALTER
+- DROP
+- TRUNCATE
+
+✔ PASS Examples
+CREATE TABLE emp (id NUMBER);
+
+❌ FAIL Examples
+CREATE TABLE emp (id NUMBER);
+COMMIT;
+
+3️⃣ GRANT / REVOKE No-Commit Rule
+
+File: validator/rules/grant_revoke_no_commit.py
+Rule ID: grant_revoke_no_commit
+
+✅ Purpose
+Privilege changes must not be followed by explicit COMMIT.
+
+✔ PASS
+GRANT SELECT ON emp TO hr;
+
+❌ FAIL
+GRANT SELECT ON emp TO hr;
+COMMIT;
+
+4️⃣ PL/SQL Slash Rule (Strict Mode)
+
+File: validator/rules/plsql_slash.py
+Rule ID: plsql_slash
+
+✅ Purpose
+All Oracle PL/SQL blocks must end with / on a new line.
+
+✔ PASS
+BEGIN
+  NULL;
+END;
+/
+
+❌ FAIL
+BEGIN
+  NULL;
+END;
+-- MISSING slash
+
+5️⃣ Object Name Length Rule
+
+File: validator/rules/object_name_length_rule.py
+Rule ID: object_name_length
+
+✅ Purpose
+Enforce Oracle’s ≤ 30-character identifier limit.
+
+🔍 What it checks
+Extracts object name (ignoring schema prefix) and validates length ≤ 30.
+
+✔ PASS
+CREATE TABLE hr.shortname (id NUMBER);
+
+❌ FAIL
+CREATE TABLE hr.this_is_a_very_long_table_name_exceeding_limit (id NUMBER);
+
+6️⃣ Backup Table Suffix Rule
+
+File: validator/rules/backup_table_rule.py
+Rule ID: backup_table_suffix
+
+✅ Purpose
+Ensure backup tables follow naming standards.
+
+🔍 What it checks
+If table indicates backup (has _BKP, _BACKUP suffix):
+- Must end with _TBD
+- Lifecycle warning issued
+
+✔ PASS
+CREATE TABLE employees_bkp_tbd (id NUMBER);
+
+❌ FAIL
+CREATE TABLE employees_bkp (id NUMBER);
+
+7️⃣ Table Naming Convention Rule
+
+File: validator/rules/table_naming_convention_rule.py
+Rule ID: table_naming_convention
+
+✅ Purpose
+Enforce strict naming conventions for ALL tables.
+
+🔍 What it checks
+- Must start with a letter
+- No special characters (hyphens, brackets)
+- No quotes
+- Only alphanumeric and underscores
+
+✔ PASS
+CREATE TABLE hr.employees (id NUMBER);
+
+❌ FAIL
+CREATE TABLE hr."employees" (id NUMBER);  -- Quoted
+CREATE TABLE hr.1emp (id NUMBER);         -- Starts with number
+CREATE TABLE hr.emp-1 (id NUMBER);        -- Special char
+
+8️⃣ DDL Schema Prefix Rule
+
+File: validator/rules/ddl_schema_prefix_rule.py
+Rule ID: ddl_schema_prefix
+
+✅ Purpose
+Ensure all DDL statements explicitly specify the schema.
+
+🔍 What it checks
+- CREATE/ALTER/DROP/TRUNCATE TABLE
+- CREATE INDEX/VIEW/SEQUENCE/SYNONYM
+- GRANT/REVOKE
+
+✔ PASS
+CREATE TABLE hr.employees (id NUMBER);
+
+❌ FAIL
+CREATE TABLE employees (id NUMBER);       -- Missing schema
+
+9️⃣ Single Schema Per File
+
+File: validator/rules/single_schema_rule.py
+Rule ID: single_schema
+
+✅ Purpose
+Ensure each SQL file contains DDL for only one schema.
+
+✔ PASS
+CREATE TABLE hr.t1 ...
+CREATE TABLE hr.t2 ...
+
+❌ FAIL
+CREATE TABLE hr.t1 ...
+CREATE TABLE finance.t2 ...
+
+🔟 Backup Table Grant Restriction
+
+File: validator/rules/backup_grant_rule.py
+Rule ID: backup_grant_select
+
+✅ Purpose
+Restrict usage of backup tables. Only LOADER user can SELECT from them.
+
+✔ PASS
+GRANT SELECT ON hr.emp_bkp_tbd TO LOADER;
+
+❌ FAIL
+GRANT SELECT ON hr.emp_bkp_tbd TO APP_USER;
+
+1️⃣1️⃣ GRANT ALL Restriction
+
+File: validator/rules/grant_all_rule.py
+Rule ID: grant_all_restriction
+
+✅ Purpose
+Prevent excessive privileges. GRANT ALL is forbidden.
+
+❌ FAIL
+GRANT ALL ON hr.emp TO user;
+
+1️⃣2️⃣ Grant Privilege Restriction
+
+File: validator/rules/grant_privilege_rule.py
+Rule ID: grant_privilege_restriction
+
+✅ Purpose
+Restrict privileges for regular users.
+- Regular users: Only SELECT allowed
+- LOADER: Any privilege allowed
+
+✔ PASS
+GRANT SELECT ON hr.emp TO app_user;
+GRANT INSERT ON hr.emp TO LOADER;
+
+❌ FAIL
+GRANT INSERT ON hr.emp TO app_user;
+
+1️⃣3️⃣ Backup Table Drop Limit
+
+File: validator/rules/backup_drop_limit_rule.py
+Rule ID: backup_drop_limit
+
+✅ Purpose
+Limit accidental mass deletion of backup tables (safety).
+Max 400 _TBD drops per file.
+
+❌ FAIL
+File containing > 400 DROP TABLE ... _TBD statements.
+
+1️⃣4️⃣ NOLOGGING Restriction
+
+File: validator/rules/nologging_rule.py
+Rule ID: nologging_restriction
+
+✅ Purpose
+Ensure recoverability. Objects must not use NOLOGGING mode.
+
+✔ PASS
+CREATE TABLE hr.emp (id NUMBER);
+
+❌ FAIL
+CREATE TABLE hr.emp (id NUMBER) NOLOGGING;
+
+1️⃣5️⃣ Semicolon Requirement Rule
+
+File: validator/rules/semicolon_rule.py
+Rule ID: semicolon_required
+
+✅ Purpose
+Ensure SQL statements terminate properly.
+
+✔ PASS
+DELETE FROM emp WHERE id=1;
+
+❌ FAIL
+DELETE FROM emp WHERE id=1

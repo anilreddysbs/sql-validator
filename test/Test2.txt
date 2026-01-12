@@ -1,0 +1,6 @@
+UPDATE Employees
+SET 
+    JobTitle = 'Senior Data Analyst',
+    Salary = 75000.00
+WHERE 
+    EmployeeID = 1;

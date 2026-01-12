@@ -1,0 +1,82 @@
+{
+  "dml_commit": {
+    "enabled": true,
+    "rule_name": "DML Commit Validation"
+  },
+  "ddl_no_commit": {
+    "enabled": true,
+    "rule_name": "DDL Must Not Contain COMMIT"
+  },
+  "grant_revoke_no_commit": {
+    "enabled": true,
+    "rule_name": "GRANT/REVOKE Commit Restriction"
+  },
+  "plsql_slash": {
+    "enabled": true,
+    "rule_name": "PL/SQL Slash Requirement"
+  },
+  "object_name_length": {
+    "enabled": true,
+    "rule_name": "Object Name Length Check",
+    "max_length": 30
+  },
+  "backup_table_suffix": {
+    "enabled": true,
+    "rule_name": "Backup Table Suffix",
+    "backup_suffixes": [
+      "BACKUP",
+      "BKP"
+    ],
+    "required_ending": "TBD"
+  },
+  "table_naming_convention": {
+    "enabled": true,
+    "rule_name": "Table Naming Convention"
+  },
+  "ddl_schema_prefix": {
+    "enabled": true,
+    "rule_name": "DDL Schema Prefix"
+  },
+  "single_schema": {
+    "enabled": true,
+    "rule_name": "Single Schema Per File"
+  },
+  "backup_grant_select": {
+    "enabled": true,
+    "rule_name": "Backup Table Grant Restriction",
+    "allowed_user": "LOADER",
+    "backup_suffixes": [
+      "BACKUP",
+      "BKP"
+    ]
+  },
+  "grant_all_restriction": {
+    "enabled": true,
+    "rule_name": "GRANT ALL Restriction"
+  },
+  "grant_privilege_restriction": {
+    "enabled": true,
+    "rule_name": "Grant Privilege Restriction",
+    "privileged_user": "LOADER",
+    "allowed_privileges": [
+      "SELECT"
+    ]
+  },
+  "backup_drop_limit": {
+    "enabled": true,
+    "rule_name": "Backup Table Drop Limit",
+    "max_drops": 400
+  },
+  "nologging_restriction": {
+    "enabled": true,
+    "rule_name": "NOLOGGING Restriction"
+  },
+  "semicolon_required": {
+    "enabled": true,
+    "rule_name": "Semicolon Termination Rule"
+  },
+  "column_naming": {
+    "enabled": true,
+    "rule_name": "Column Naming Convention"
+  }
+}

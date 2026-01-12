@@ -1,0 +1,23 @@
+-- Test 1: Valid backup table name (should PASS both checks)
+CREATE TABLE employees_bkp_tbd (id NUMBER);
+
+-- Test 2: Starts with number (should FAIL naming convention)
+CREATE TABLE 1_employees_bkp_tbd (id NUMBER);
+
+-- Test 3: Contains hyphen (should FAIL naming convention)
+CREATE TABLE employees-bkp-tbd (id NUMBER);
+
+-- Test 4: Contains special character @ (should FAIL naming convention)
+CREATE TABLE employees@bkp_tbd (id NUMBER);
+
+-- Test 5: Starts with underscore (should FAIL naming convention)
+CREATE TABLE _employees_bkp_tbd (id NUMBER);
+
+-- Test 6: Contains brackets (should FAIL naming convention)
+CREATE TABLE employees(bkp)_tbd (id NUMBER);
+
+-- Test 7: Valid name but missing _TBD suffix (should PASS naming, FAIL suffix)
+CREATE TABLE employees_bkp (id NUMBER);
+
+-- Test 8: Normal table (should be ignored - not a backup table)
+CREATE TABLE employees (id NUMBER);

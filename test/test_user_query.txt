@@ -1,0 +1,12 @@
+CREATE TABLE employees (
+    employee_"id" NUMBER(10) primary key,
+    first_name varchar2(50) NOTNULL,
+    00l_last_name Varchar2(50) NOTNULL,
+    email@enter VARCHAR2(100) unique,
+    hire_
+    date DATE DEFAULT SYSDATE,
+    department_id Number(10),
+    CONSTRAINT fk_departments 
+    FOREIGN KEY (department_id)
+    REFERENCES departments(department_id)
+    );

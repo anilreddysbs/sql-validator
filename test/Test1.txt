@@ -1,0 +1,26 @@
+CREATE TABLE Employees (
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    Email VARCHAR(100) UNIQUE
+);
+
+CREATE TABLE EmployeesfromtheHDC4locationGachibowli (
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    DepartmentID INT
+);
+
+commit;
+
+
+INSERT INTO Employees (
+    FirstName,
+    LastName,
+    Email
+VALUES (
+    'Srikanth',
+    'Thummala',
+    'srikanth.thummala@accenture.com'
+);
+
+

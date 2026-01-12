@@ -1,0 +1,117 @@
+----------------------------------------------------
+-- TEST SUITE FOR SQL VALIDATOR
+-- Covers all backend rules (success + failure)
+----------------------------------------------------
+
+----------------------------------------------------
+-- 1. DML MUST BE FOLLOWED BY COMMIT
+----------------------------------------------------
+
+-- ❌ FAIL: Missing COMMIT
+INSERT INTO emp VALUES (1, 'A');
+
+-- ❌ FAIL: Missing COMMIT
+UPDATE emp SET name='John' WHERE id=1;
+
+-- ✔ PASS
+DELETE FROM emp WHERE id=2;
+COMMIT;
+
+
+----------------------------------------------------
+-- 2. DDL MUST NOT BE FOLLOWED BY COMMIT
+----------------------------------------------------
+
+-- ✔ PASS
+CREATE TABLE good_table (id NUMBER);
+
+-- ✔ PASS
+ALTER TABLE good_table ADD (col VARCHAR2(20));
+
+-- ✔ PASS
+DROP TABLE good_table;
+
+-- ❌ FAIL: DDL followed by COMMIT
+CREATE TABLE wrong_commit_table (id NUMBER);
+COMMIT;
+
+
+----------------------------------------------------
+-- 3. GRANT / REVOKE MUST NOT BE FOLLOWED BY COMMIT
+----------------------------------------------------
+
+-- ✔ PASS
+GRANT SELECT ON emp TO hr;
+
+-- ✔ PASS
+REVOKE UPDATE ON emp FROM hr;
+
+-- ❌ FAIL: GRANT followed by COMMIT
+GRANT DELETE ON emp TO hr;
+COMMIT;
+
+-- ❌ FAIL: REVOKE followed by COMMIT
+REVOKE SELECT ON emp FROM hr;
+COMMIT;
+
+
+----------------------------------------------------
+-- 4. PL/SQL BLOCK MUST END WITH END; AND A SLASH '/'
+----------------------------------------------------
+
+-- ✔ PASS
+DECLARE
+    v NUMBER := 100;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(v);
+END;
+/
+
+-- ✔ PASS
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Hello from PL/SQL');
+END;
+/
+
+-- ❌ FAIL: Missing slash
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Missing slash');
+END;
+
+-- ❌ FAIL: Missing END;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Missing END keyword');
+
+
+----------------------------------------------------
+-- 5. OBJECT NAME LENGTH MUST BE <= 30
+----------------------------------------------------
+
+-- ✔ PASS, name = 10 chars
+CREATE TABLE shortname (id NUMBER);
+
+-- ❌ FAIL: longer than 30 chars
+CREATE TABLE this_is_a_very_long_table_name_exceeding_limit (id NUMBER);
+
+
+----------------------------------------------------
+-- 6. BACKUP TABLES MUST END WITH _TBD
+-- Suffix detection: BACKUP, BKP
+----------------------------------------------------
+
+-- ❌ FAIL: missing _TBD
+CREATE TABLE sales_backup (id NUMBER);
+
+-- ❌ FAIL: missing _TBD
+CREATE TABLE log_bkp (id NUMBER);
+
+-- ✔ PASS: correct backup table naming
+CREATE TABLE sales_backup_TBD (id NUMBER);
+
+-- ✔ PASS: correct backup table naming
+CREATE TABLE log_bkp_TBD (id NUMBER);
+
+
+----------------------------------------------------
+-- END OF TEST SUITE
+----------------------------------------------------

@@ -1,0 +1,676 @@
+{
+  "sql_rule_test.txt": {
+    "status": "fail",
+    "violations": [
+      {
+        "index": 0,
+        "query": "INSERT INTO emp VALUES (1, 'A');",
+        "validations": [
+          "\u274c DML Commit Validation: DML statement not followed by COMMIT.",
+          "\u2705 Table Naming Convention: 'EMP' follows valid naming rules.",
+          "\u274c Single Schema Per File: No schema prefixes found in file. All statements must use schema.object format.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 1,
+        "query": "UPDATE emp SET name='B' WHERE id=1;",
+        "validations": [
+          "\u274c DML Commit Validation: DML statement not followed by COMMIT.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 2,
+        "query": "DELETE FROM emp WHERE id=2;\nCOMMIT;",
+        "validations": [
+          "\u2705 DML Commit Validation: COMMIT found in same statement.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 3,
+        "query": "INSERT INTO emp VALUES (2, 'Missing');",
+        "validations": [
+          "\u274c DML Commit Validation: DML statement not followed by COMMIT.",
+          "\u2705 Table Naming Convention: 'EMP' follows valid naming rules.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 4,
+        "query": "CREATE TABLE good_table (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'good_table' length OK (10).",
+          "\u2705 Table Naming Convention: 'GOOD_TABLE' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'good_table' - should be 'schema.good_table'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 5,
+        "query": "ALTER TABLE good_table ADD (c VARCHAR2(20));",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'good_table' length OK (10).",
+          "\u2705 Table Naming Convention: 'GOOD_TABLE' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: ALTER TABLE missing schema prefix. Found 'good_table' - should be 'schema.good_table'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 6,
+        "query": "DROP TABLE good_table;",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Table Naming Convention: 'GOOD_TABLE' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: DROP TABLE missing schema prefix. Found 'good_table' - should be 'schema.good_table'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 7,
+        "query": "CREATE TABLE bad_commit_table (id NUMBER);\nCOMMIT;",
+        "validations": [
+          "\u274c DDL Must Not Contain COMMIT: COMMIT found inside DDL.",
+          "\u2705 Object Name Length Check: 'bad_commit_table' length OK (16).",
+          "\u2705 Table Naming Convention: 'BAD_COMMIT_TABLE' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'bad_commit_table' - should be 'schema.bad_commit_table'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 8,
+        "query": "GRANT SELECT ON good_table TO PUBLIC;",
+        "validations": [
+          "\u2705 GRANT/REVOKE Commit Restriction: No COMMIT found after GRANT/REVOKE.",
+          "\u274c DDL Schema Prefix: GRANT missing schema prefix. Found 'good_table' - should be 'schema.good_table'.",
+          "\u2705 Grant Privilege Restriction: GRANT SELECT on 'good_table' to 'PUBLIC' is valid.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 9,
+        "query": "REVOKE SELECT ON good_table FROM PUBLIC;",
+        "validations": [
+          "\u2705 GRANT/REVOKE Commit Restriction: No COMMIT found after GRANT/REVOKE.",
+          "\u274c DDL Schema Prefix: REVOKE missing schema prefix. Found 'good_table' - should be 'schema.good_table'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 10,
+        "query": "GRANT UPDATE ON good_table TO PUBLIC;\nCOMMIT;",
+        "validations": [
+          "\u274c GRANT/REVOKE Commit Restriction: COMMIT found inside statement.",
+          "\u274c DDL Schema Prefix: GRANT missing schema prefix. Found 'good_table' - should be 'schema.good_table'.",
+          "\u274c Grant Privilege Restriction: User 'PUBLIC' can only be granted SELECT. Found: UPDATE. Only LOADER can have additional privileges.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 11,
+        "query": "DECLARE\n    v NUMBER := 10;\nBEGIN\n    DBMS_OUTPUT.PUT_LINE(v);\nEND;\n/",
+        "validations": [
+          "\u2705 PL/SQL Slash Requirement: trailing slash '/' found for PL/SQL block.",
+          "\u2705 Semicolon Termination Rule: PL/SQL semicolons handled by PL/SQL rule."
+        ]
+      },
+      {
+        "index": 12,
+        "query": "BEGIN\n    DBMS_OUTPUT.PUT_LINE('Missing slash here');\nEND;",
+        "validations": [
+          "\u274c PL/SQL Slash Requirement: PL/SQL block ended with 'END;' but missing trailing '/'.",
+          "\u2705 Semicolon Termination Rule: PL/SQL semicolons handled by PL/SQL rule."
+        ]
+      },
+      {
+        "index": 13,
+        "query": "CREATE TABLE this_is_a_very_long_table_name_exceeding_limit_abcdefgh (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u274c Object Name Length Check: 'this_is_a_very_long_table_name_exceeding_limit_abcdefgh' exceeds 30 chars.",
+          "\u2705 Table Naming Convention: 'THIS_IS_A_VERY_LONG_TABLE_NAME_EXCEEDING_LIMIT_ABCDEFGH' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'this_is_a_very_long_table_name_exceeding_limit_abcdefgh' - should be 'schema.this_is_a_very_long_table_name_exceeding_limit_abcdefgh'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 14,
+        "query": "CREATE TABLE data_backup (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'data_backup' length OK (11).",
+          "\u274c Backup Table Suffix: Backup table 'DATA_BACKUP' must end with TBD.",
+          "\u2705 Table Naming Convention: 'DATA_BACKUP' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'data_backup' - should be 'schema.data_backup'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 15,
+        "query": "CREATE TABLE sales_backup_TBD (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'sales_backup_TBD' length OK (16).",
+          "\u2705 Backup Table Suffix: 'SALES_BACKUP_TBD' ends with TBD.",
+          "\u26a0\ufe0f Backup table 'SALES_BACKUP_TBD' should be dropped in the next CR or after its intended usage is completed.",
+          "\u2705 Table Naming Convention: 'SALES_BACKUP_TBD' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'sales_backup_TBD' - should be 'schema.sales_backup_TBD'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      }
+    ]
+  },
+  "Test.txt": {
+    "status": "fail",
+    "violations": [
+      {
+        "index": 0,
+        "query": "CREATE TABLE Employees_BKP_TBD (\n    EmpID NUMBER,\n    Name VARCHAR2(50)\n);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'Employees_BKP_TBD' length OK (17).",
+          "\u2705 Backup Table Suffix: 'EMPLOYEES_BKP_TBD' ends with TBD.",
+          "\u26a0\ufe0f Backup table 'EMPLOYEES_BKP_TBD' should be dropped in the next CR or after its intended usage is completed.",
+          "\u2705 Table Naming Convention: 'EMPLOYEES_BKP_TBD' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'Employees_BKP_TBD' - should be 'schema.Employees_BKP_TBD'.",
+          "\u274c Single Schema Per File: No schema prefixes found in file. All statements must use schema.object format.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 1,
+        "query": "CREATE TABLE DepartmentsBackup (\n    DeptID NUMBER,\n    DeptName VARCHAR2(50)\n);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'DepartmentsBackup' length OK (17).",
+          "\u274c Backup Table Suffix: Backup table 'DEPARTMENTSBACKUP' must end with TBD.",
+          "\u2705 Table Naming Convention: 'DEPARTMENTSBACKUP' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'DepartmentsBackup' - should be 'schema.DepartmentsBackup'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 2,
+        "query": "CREATE TABLE employees (\n    employee_\"id\" NUMBER(10) primary key,\n    first_name varchar2(50) NOTNULL,\n    00l_last_name Varchar2(50) NOTNULL,\n    email@enter VARCHAR2(100) unique,\n    hire_\n    date DATE DEFAULT SYSDATE,\n    department_id Number(10),\n    CONSTRAINT fk_departments \n    FOREIGN KEY (department_id)\n    REFERENCES departments(department_id)\n    );",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'employees' length OK (9).",
+          "\u2705 Table Naming Convention: 'EMPLOYEES' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'employees' - should be 'schema.employees'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon.",
+          "\u274c Column Naming Convention: 'employee_\"id\"' quoted column names are not allowed.",
+          "\u274c Column Naming Convention: '00l_last_name' cannot start with a number.",
+          "\u274c Column Naming Convention: 'email@enter' contains invalid characters: '@'."
+        ]
+      }
+    ]
+  },
+  "Test0.txt": {
+    "status": "fail",
+    "violations": [
+      {
+        "index": 0,
+        "query": "INSERT INTO Employees (EmpID, Name) VALUES (1, 'John Doe');\nCOMMIT;",
+        "validations": [
+          "\u2705 DML Commit Validation: COMMIT found in same statement.",
+          "\u2705 Table Naming Convention: 'EMPLOYEES' follows valid naming rules.",
+          "\u274c Single Schema Per File: No schema prefixes found in file. All statements must use schema.object format.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 1,
+        "query": "UPDATE Employees SET Name='Jane Doe' WHERE EmpID=1;",
+        "validations": [
+          "\u274c DML Commit Validation: DML statement not followed by COMMIT.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 2,
+        "query": "CREATE TABLE Departments (\n    DeptID NUMBER(5),\n    DeptName VARCHAR2(50)\n);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'Departments' length OK (11).",
+          "\u2705 Table Naming Convention: 'DEPARTMENTS' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'Departments' - should be 'schema.Departments'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 3,
+        "query": "ALTER TABLE Employees ADD (Salary NUMBER(10));\nCOMMIT;",
+        "validations": [
+          "\u274c DDL Must Not Contain COMMIT: COMMIT found inside DDL.",
+          "\u2705 Object Name Length Check: 'Employees' length OK (9).",
+          "\u2705 Table Naming Convention: 'EMPLOYEES' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: ALTER TABLE missing schema prefix. Found 'Employees' - should be 'schema.Employees'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 4,
+        "query": "GRANT SELECT, INSERT ON Employees TO HR;",
+        "validations": [
+          "\u2705 GRANT/REVOKE Commit Restriction: No COMMIT found after GRANT/REVOKE.",
+          "\u274c Grant Privilege Restriction: User 'HR' can only be granted SELECT. Found: INSERT. Only LOADER can have additional privileges.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 5,
+        "query": "REVOKE DELETE ON Employees FROM HR;\nCOMMIT;",
+        "validations": [
+          "\u274c GRANT/REVOKE Commit Restriction: COMMIT found inside statement.",
+          "\u274c DDL Schema Prefix: REVOKE missing schema prefix. Found 'Employees' - should be 'schema.Employees'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 6,
+        "query": "DECLARE\n    v_msg VARCHAR2(100);\nBEGIN\n    v_msg := 'Hello, PL/SQL!';\nDBMS_OUTPUT.PUT_LINE(v_msg);\nEND;\n/",
+        "validations": [
+          "\u2705 PL/SQL Slash Requirement: trailing slash '/' found for PL/SQL block.",
+          "\u2705 Semicolon Termination Rule: PL/SQL semicolons handled by PL/SQL rule."
+        ]
+      },
+      {
+        "index": 7,
+        "query": "BEGIN\n    DBMS_OUTPUT.PUT_LINE('Missing slash');\nEND;",
+        "validations": [
+          "\u274c PL/SQL Slash Requirement: PL/SQL block ended with 'END;' but missing trailing '/'.",
+          "\u2705 Semicolon Termination Rule: PL/SQL semicolons handled by PL/SQL rule."
+        ]
+      }
+    ]
+  },
+  "Test1.txt": {
+    "status": "fail",
+    "violations": [
+      {
+        "index": 0,
+        "query": "CREATE TABLE Employees (\n    FirstName VARCHAR(50) NOT NULL,\n    LastName VARCHAR(50) NOT NULL,\n    Email VARCHAR(100) UNIQUE\n);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'Employees' length OK (9).",
+          "\u2705 Table Naming Convention: 'EMPLOYEES' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'Employees' - should be 'schema.Employees'.",
+          "\u274c Single Schema Per File: No schema prefixes found in file. All statements must use schema.object format.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 1,
+        "query": "CREATE TABLE EmployeesfromtheHDC4locationGachibowli (\n    FirstName VARCHAR(50) NOT NULL,\n    LastName VARCHAR(50) NOT NULL,\n    DepartmentID INT\n);\ncommit;",
+        "validations": [
+          "\u274c DDL Must Not Contain COMMIT: COMMIT found inside DDL.",
+          "\u274c Object Name Length Check: 'EmployeesfromtheHDC4locationGachibowli' exceeds 30 chars.",
+          "\u2705 Table Naming Convention: 'EMPLOYEESFROMTHEHDC4LOCATIONGACHIBOWLI' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'EmployeesfromtheHDC4locationGachibowli' - should be 'schema.EmployeesfromtheHDC4locationGachibowli'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 2,
+        "query": "INSERT INTO Employees (\n    FirstName,\n    LastName,\n    Email\nVALUES (\n    'Srikanth',\n    'Thummala',\n    'srikanth.thummala@accenture.com'\n);",
+        "validations": [
+          "\u274c DML Commit Validation: DML statement not followed by COMMIT.",
+          "\u2705 Table Naming Convention: 'EMPLOYEES' follows valid naming rules.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      }
+    ]
+  },
+  "Test2.txt": {
+    "status": "fail",
+    "violations": [
+      {
+        "index": 0,
+        "query": "UPDATE Employees\nSET \n    JobTitle = 'Senior Data Analyst',\n    Salary = 75000.00\nWHERE \n    EmployeeID = 1;",
+        "validations": [
+          "\u274c DML Commit Validation: DML statement not followed by COMMIT.",
+          "\u274c Single Schema Per File: No schema prefixes found in file. All statements must use schema.object format.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      }
+    ]
+  },
+  "Test3.txt": {
+    "status": "fail",
+    "violations": [
+      {
+        "index": 0,
+        "query": "REVOKE SELECT, INSERT, UPDATE\nON Employees\nFROM AnalystTeam;",
+        "validations": [
+          "\u2705 GRANT/REVOKE Commit Restriction: No COMMIT found after GRANT/REVOKE.",
+          "\u274c Single Schema Per File: No schema prefixes found in file. All statements must use schema.object format.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      }
+    ]
+  },
+  "test4.txt": {
+    "status": "fail",
+    "violations": [
+      {
+        "index": 0,
+        "query": "INSERT INTO emp VALUES (1, 'A');",
+        "validations": [
+          "\u274c DML Commit Validation: DML statement not followed by COMMIT.",
+          "\u2705 Table Naming Convention: 'EMP' follows valid naming rules.",
+          "\u274c Single Schema Per File: No schema prefixes found in file. All statements must use schema.object format.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 1,
+        "query": "UPDATE emp SET name='John' WHERE id=1;",
+        "validations": [
+          "\u274c DML Commit Validation: DML statement not followed by COMMIT.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 2,
+        "query": "DELETE FROM emp WHERE id=2;\nCOMMIT;",
+        "validations": [
+          "\u2705 DML Commit Validation: COMMIT found in same statement.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 3,
+        "query": "CREATE TABLE good_table (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'good_table' length OK (10).",
+          "\u2705 Table Naming Convention: 'GOOD_TABLE' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'good_table' - should be 'schema.good_table'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 4,
+        "query": "ALTER TABLE good_table ADD (col VARCHAR2(20));",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'good_table' length OK (10).",
+          "\u2705 Table Naming Convention: 'GOOD_TABLE' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: ALTER TABLE missing schema prefix. Found 'good_table' - should be 'schema.good_table'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 5,
+        "query": "DROP TABLE good_table;",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Table Naming Convention: 'GOOD_TABLE' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: DROP TABLE missing schema prefix. Found 'good_table' - should be 'schema.good_table'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 6,
+        "query": "CREATE TABLE wrong_commit_table (id NUMBER);\nCOMMIT;",
+        "validations": [
+          "\u274c DDL Must Not Contain COMMIT: COMMIT found inside DDL.",
+          "\u2705 Object Name Length Check: 'wrong_commit_table' length OK (18).",
+          "\u2705 Table Naming Convention: 'WRONG_COMMIT_TABLE' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'wrong_commit_table' - should be 'schema.wrong_commit_table'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 7,
+        "query": "GRANT SELECT ON emp TO hr;",
+        "validations": [
+          "\u2705 GRANT/REVOKE Commit Restriction: No COMMIT found after GRANT/REVOKE.",
+          "\u274c DDL Schema Prefix: GRANT missing schema prefix. Found 'emp' - should be 'schema.emp'.",
+          "\u2705 Grant Privilege Restriction: GRANT SELECT on 'emp' to 'HR' is valid.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 8,
+        "query": "REVOKE UPDATE ON emp FROM hr;",
+        "validations": [
+          "\u2705 GRANT/REVOKE Commit Restriction: No COMMIT found after GRANT/REVOKE.",
+          "\u274c DDL Schema Prefix: REVOKE missing schema prefix. Found 'emp' - should be 'schema.emp'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 9,
+        "query": "GRANT DELETE ON emp TO hr;\nCOMMIT;",
+        "validations": [
+          "\u274c GRANT/REVOKE Commit Restriction: COMMIT found inside statement.",
+          "\u274c DDL Schema Prefix: GRANT missing schema prefix. Found 'emp' - should be 'schema.emp'.",
+          "\u274c Grant Privilege Restriction: User 'HR' can only be granted SELECT. Found: DELETE. Only LOADER can have additional privileges.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 10,
+        "query": "REVOKE SELECT ON emp FROM hr;\nCOMMIT;",
+        "validations": [
+          "\u274c GRANT/REVOKE Commit Restriction: COMMIT found inside statement.",
+          "\u274c DDL Schema Prefix: REVOKE missing schema prefix. Found 'emp' - should be 'schema.emp'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 11,
+        "query": "DECLARE\n    v NUMBER := 100;\nBEGIN\n    DBMS_OUTPUT.PUT_LINE(v);\nEND;\n/",
+        "validations": [
+          "\u2705 PL/SQL Slash Requirement: trailing slash '/' found for PL/SQL block.",
+          "\u2705 Semicolon Termination Rule: PL/SQL semicolons handled by PL/SQL rule."
+        ]
+      },
+      {
+        "index": 12,
+        "query": "BEGIN\n    DBMS_OUTPUT.PUT_LINE('Hello from PL/SQL');\nEND;\n/",
+        "validations": [
+          "\u2705 PL/SQL Slash Requirement: trailing slash '/' found for PL/SQL block.",
+          "\u2705 Semicolon Termination Rule: PL/SQL semicolons handled by PL/SQL rule."
+        ]
+      },
+      {
+        "index": 13,
+        "query": "BEGIN\n    DBMS_OUTPUT.PUT_LINE('Missing slash');\nEND;",
+        "validations": [
+          "\u274c PL/SQL Slash Requirement: PL/SQL block ended with 'END;' but missing trailing '/'.",
+          "\u2705 Semicolon Termination Rule: PL/SQL semicolons handled by PL/SQL rule."
+        ]
+      },
+      {
+        "index": 14,
+        "query": "BEGIN\n    DBMS_OUTPUT.PUT_LINE('Missing END keyword');\nCREATE TABLE shortname (id NUMBER);\nCREATE TABLE this_is_a_very_long_table_name_exceeding_limit (id NUMBER);\nCREATE TABLE sales_backup (id NUMBER);\nCREATE TABLE log_bkp (id NUMBER);\nCREATE TABLE sales_backup_TBD (id NUMBER);\nCREATE TABLE log_bkp_TBD (id NUMBER);",
+        "validations": [
+          "\u274c PL/SQL Slash Requirement: PL/SQL block appears incomplete or missing 'END;' and trailing '/'.",
+          "\u2705 Object Name Length Check: 'shortname' length OK (9).",
+          "\u2705 Table Naming Convention: 'SHORTNAME' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'shortname' - should be 'schema.shortname'.",
+          "\u2705 Semicolon Termination Rule: PL/SQL semicolons handled by PL/SQL rule."
+        ]
+      }
+    ]
+  },
+  "Test5.txt": {
+    "status": "fail",
+    "violations": [
+      {
+        "index": 0,
+        "query": "CREATE TABLE Employees (\n    FirstName VARCHAR(50) NOT NULL,\n    LastName VARCHAR(50) NOT NULL,\n    Email VARCHAR(100) UNIQUE\n);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'Employees' length OK (9).",
+          "\u2705 Table Naming Convention: 'EMPLOYEES' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'Employees' - should be 'schema.Employees'.",
+          "\u274c Single Schema Per File: No schema prefixes found in file. All statements must use schema.object format.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 1,
+        "query": "CREATE TABLE EmployeesfromHDC4Gachibowli (\n    FirstName VARCHAR(50) NOT NULL,\n    LastName VARCHAR(50) NOT NULL,\n    DepartmentID INT\n);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'EmployeesfromHDC4Gachibowli' length OK (27).",
+          "\u2705 Table Naming Convention: 'EMPLOYEESFROMHDC4GACHIBOWLI' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'EmployeesfromHDC4Gachibowli' - should be 'schema.EmployeesfromHDC4Gachibowli'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 2,
+        "query": "UPDATE Employees\nSET \n    JobTitle = 'Senior Data Analyst',\n    Salary = 75000.00\nWHERE \n    EmployeeID = 1;",
+        "validations": [
+          "\u274c DML Commit Validation: DML statement not followed by COMMIT.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 3,
+        "query": "REVOKE SELECT, INSERT, UPDATE\nON Employees\nFROM AnalystTeam;",
+        "validations": [
+          "\u2705 GRANT/REVOKE Commit Restriction: No COMMIT found after GRANT/REVOKE.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 4,
+        "query": "DECLARE\n  v_message VARCHAR2(100) := 'Hello, PL/SQL!'\nBEGIN\n  DBMS_OUTPUT.PUT_LINE(v_message);\nEND;\n/",
+        "validations": [
+          "\u2705 PL/SQL Slash Requirement: trailing slash '/' found for PL/SQL block.",
+          "\u2705 Semicolon Termination Rule: PL/SQL semicolons handled by PL/SQL rule."
+        ]
+      }
+    ]
+  },
+  "test_backup_naming.txt": {
+    "status": "fail",
+    "violations": [
+      {
+        "index": 0,
+        "query": "CREATE TABLE employees_bkp_tbd (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'employees_bkp_tbd' length OK (17).",
+          "\u2705 Backup Table Suffix: 'EMPLOYEES_BKP_TBD' ends with TBD.",
+          "\u26a0\ufe0f Backup table 'EMPLOYEES_BKP_TBD' should be dropped in the next CR or after its intended usage is completed.",
+          "\u2705 Table Naming Convention: 'EMPLOYEES_BKP_TBD' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'employees_bkp_tbd' - should be 'schema.employees_bkp_tbd'.",
+          "\u274c Single Schema Per File: No schema prefixes found in file. All statements must use schema.object format.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 1,
+        "query": "CREATE TABLE 1_employees_bkp_tbd (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: '1_employees_bkp_tbd' length OK (19).",
+          "\u2705 Backup Table Suffix: '1_EMPLOYEES_BKP_TBD' ends with TBD.",
+          "\u26a0\ufe0f Backup table '1_EMPLOYEES_BKP_TBD' should be dropped in the next CR or after its intended usage is completed.",
+          "\u274c Table Naming Convention: '1_EMPLOYEES_BKP_TBD' cannot start with a number.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found '1_employees_bkp_tbd' - should be 'schema.1_employees_bkp_tbd'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 2,
+        "query": "CREATE TABLE employees-bkp-tbd (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'employees' length OK (9).",
+          "\u274c Table Naming Convention: 'EMPLOYEES-BKP-TBD' contains invalid characters: '-'.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'employees' - should be 'schema.employees'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 3,
+        "query": "CREATE TABLE employees@bkp_tbd (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'employees' length OK (9).",
+          "\u274c Table Naming Convention: 'EMPLOYEES@BKP_TBD' contains invalid characters: '@'.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'employees' - should be 'schema.employees'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 4,
+        "query": "CREATE TABLE _employees_bkp_tbd (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: '_employees_bkp_tbd' length OK (18).",
+          "\u2705 Backup Table Suffix: '_EMPLOYEES_BKP_TBD' ends with TBD.",
+          "\u26a0\ufe0f Backup table '_EMPLOYEES_BKP_TBD' should be dropped in the next CR or after its intended usage is completed.",
+          "\u274c Table Naming Convention: '_EMPLOYEES_BKP_TBD' cannot start with an underscore.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found '_employees_bkp_tbd' - should be 'schema._employees_bkp_tbd'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 5,
+        "query": "CREATE TABLE employees(bkp)_tbd (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'employees' length OK (9).",
+          "\u2705 Table Naming Convention: 'EMPLOYEES' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'employees' - should be 'schema.employees'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon.",
+          "\u274c Column Naming Convention: 'bkp)_tbd' contains invalid characters: ')'."
+        ]
+      },
+      {
+        "index": 6,
+        "query": "CREATE TABLE employees_bkp (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'employees_bkp' length OK (13).",
+          "\u274c Backup Table Suffix: Backup table 'EMPLOYEES_BKP' must end with TBD.",
+          "\u2705 Table Naming Convention: 'EMPLOYEES_BKP' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'employees_bkp' - should be 'schema.employees_bkp'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      },
+      {
+        "index": 7,
+        "query": "CREATE TABLE employees (id NUMBER);",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'employees' length OK (9).",
+          "\u2705 Table Naming Convention: 'EMPLOYEES' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'employees' - should be 'schema.employees'.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon."
+        ]
+      }
+    ]
+  },
+  "test_user_query.txt": {
+    "status": "fail",
+    "violations": [
+      {
+        "index": 0,
+        "query": "CREATE TABLE employees (\n    employee_\"id\" NUMBER(10) primary key,\n    first_name varchar2(50) NOTNULL,\n    00l_last_name Varchar2(50) NOTNULL,\n    email@enter VARCHAR2(100) unique,\n    hire_\n    date DATE DEFAULT SYSDATE,\n    department_id Number(10),\n    CONSTRAINT fk_departments \n    FOREIGN KEY (department_id)\n    REFERENCES departments(department_id)\n    );",
+        "validations": [
+          "\u2705 DDL Must Not Contain COMMIT: No COMMIT found.",
+          "\u2705 Object Name Length Check: 'employees' length OK (9).",
+          "\u2705 Table Naming Convention: 'EMPLOYEES' follows valid naming rules.",
+          "\u274c DDL Schema Prefix: CREATE TABLE missing schema prefix. Found 'employees' - should be 'schema.employees'.",
+          "\u274c Single Schema Per File: No schema prefixes found in file. All statements must use schema.object format.",
+          "\u2705 Semicolon Termination Rule: Statement ends with semicolon.",
+          "\u274c Column Naming Convention: 'employee_\"id\"' quoted column names are not allowed.",
+          "\u274c Column Naming Convention: '00l_last_name' cannot start with a number.",
+          "\u274c Column Naming Convention: 'email@enter' contains invalid characters: '@'."
+        ]
+      }
+    ]
+  }
+}

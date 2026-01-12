@@ -1,0 +1,68 @@
+-- 1️⃣ DML must be followed by COMMIT
+-- ❌ Missing COMMIT
+INSERT INTO employees VALUES (1, 'Alice');
+
+-- ✅ Multiple DMLs before one COMMIT
+UPDATE employees SET name = 'Bob' WHERE id = 1;
+DELETE FROM employees WHERE id = 2;
+COMMIT;
+
+-- 2️⃣ DDL must NOT be followed by COMMIT
+-- ❌ Invalid
+CREATE TABLE users (id INT, name VARCHAR(20));
+COMMIT;
+
+-- ✅ Valid
+ALTER TABLE users ADD (email VARCHAR(50));
+
+-- 3️⃣ GRANT/REVOKE must NOT be followed by COMMIT
+-- ❌ Invalid
+GRANT SELECT ON users TO PUBLIC;
+COMMIT;
+
+-- ✅ Valid
+REVOKE UPDATE ON users FROM PUBLIC;
+
+-- 4️⃣ PL/SQL block must end with '/'
+-- ❌ Missing slash
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('Forgot slash here');
+END;
+
+-- ✅ Valid
+DECLARE
+  v_count NUMBER;
+BEGIN
+  v_count := 5;
+  DBMS_OUTPUT.PUT_LINE('Count = ' || v_count);
+END;
+/
+
+-- 5️⃣ Object name must not exceed 30 characters
+-- ❌ Invalid
+CREATE TABLE this_is_a_very_long_table_name_exceeding_limit (id NUMBER);
+
+-- ✅ Valid
+CREATE TABLE short_table (id NUMBER);
+
+-- 6️⃣ Backup tables must end with TBD
+-- ❌ Invalid
+CREATE TABLE data_backup (id INT);
+
+-- ✅ Valid
+CREATE TABLE data_backup_TBD (id INT);
+
+-- 7️⃣ COMMIT with no DML
+COMMIT;
+
+-- 8️⃣ Missing semicolon
+DELETE FROM employees WHERE id = 99
+
+-- ✅ Valid DDL + naming check
+DROP TABLE short_table;
+
+-- ✅ Valid standalone PL/SQL
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('All checks completed successfully');
+END;
+/
