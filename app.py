@@ -37,6 +37,9 @@ def validate_route():
 
     content = file.read().decode('utf-8', errors='ignore')
 
+    if not content.strip():
+        return jsonify({"error": "File is empty"}), 400
+
     # parse form fields
     name = request.form.get('name', '')
     email = request.form.get('email', '')

@@ -1,9 +1,23 @@
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.vscode/
+
+# Application Specific
 uploads/
 output/
-.env
-venv/
+
+
+# Generated Reports
+debug_report.txt
+full_test_report.txt
+debug_output.txt
+
+# OS Files
 .DS_Store
-.idea/
-.vscode/
+Thumbs.db

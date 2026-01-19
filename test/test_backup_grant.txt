@@ -1,0 +1,8 @@
+-- Valid Grant on Backup to LOADER
+GRANT SELECT ON hr.backup_data_TBD TO LOADER;
+
+-- Invalid Grant on Backup to other user
+GRANT SELECT ON hr.backup_data_TBD TO hr_user;
+
+-- Invalid Grant on Backup (INSERT not allowed)
+GRANT INSERT ON hr.backup_data_TBD TO LOADER;

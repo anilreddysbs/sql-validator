@@ -1,3 +1,8 @@
+* {
+  box-sizing: border-box;
+  /* CRITICAL: Ensures padding doesn't affect width */
+}
+
 body {
   font-family: "Segoe UI", sans-serif;
   background: linear-gradient(120deg, #0077b6, #00b4d8, #90e0ef);
@@ -17,6 +22,20 @@ body {
   border-radius: 20px;
   padding: 40px 50px;
   box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* New Result Card Layout */
+.result-card {
+  background: #ffffff;
+  border: 1px solid #bde0fe;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.result-card:last-child {
+  margin-bottom: 0;
 }
 
 h1 {
@@ -84,7 +103,10 @@ input[type="file"] {
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: #ccc;
   transition: 0.4s;
   border-radius: 34px;
@@ -93,18 +115,20 @@ input[type="file"] {
 .slider:before {
   position: absolute;
   content: "";
-  height: 22px; width: 22px;
-  left: 4px; bottom: 4px;
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
   background-color: white;
   transition: 0.4s;
   border-radius: 50%;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #0077b6;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(30px);
 }
 
@@ -133,12 +157,19 @@ button:hover {
   transition: all 0.5s ease-in-out;
 }
 
-.success { color: green; font-weight: bold; }
-.error { color: red; font-weight: bold; }
+.success {
+  color: green;
+  font-weight: bold;
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+}
 
 .download-btn {
   background-color: #2a9d8f;
-  margin-top: 20px;
+  /* Removed extra margin-top to align with Validate button */
 }
 
 .download-btn:hover {
@@ -157,19 +188,41 @@ pre {
    BUTTON ROW ALIGNMENT (Validate + Download)
 ----------------------------------------- */
 .button-row {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    gap: 25px;          /* spacing between buttons */
-    margin-top: 15px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Ensures vertical centering */
+  gap: 25px;
+  margin-top: 20px;
+}
+
+/* Ensure both buttons inside have consistent margins */
+.button-row button {
+  margin-top: 0;
+  height: 48px;
+  /* Fixed height for consistency */
 }
 
 /* Download button inherits global button style */
 #topDownloadBtn {
-    display: none;       /* stays hidden until JS shows it */
+  display: none;
+  /* stays hidden until JS shows it */
 }
+
 /* ⚠️ WARNING */
 .warning {
-  color: #f59e0b;       /* yellow / amber */
+  color: #f59e0b;
+  /* yellow / amber */
   font-weight: bold;
+}
+
+.warning-text {
+  color: #d90429;
+  /* vivid red */
+  font-weight: 500;
+  margin-top: 8px;
+  font-size: 0.95rem;
+  display: none;
+  /* Hidden by default */
 }

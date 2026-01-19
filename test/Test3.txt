@@ -1,3 +1,0 @@
-REVOKE SELECT, INSERT, UPDATE
-ON Employees
-FROM AnalystTeam;

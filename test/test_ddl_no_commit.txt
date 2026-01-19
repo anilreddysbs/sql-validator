@@ -1,0 +1,6 @@
+-- Valid DDL
+CREATE TABLE hr.test_table (id NUMBER);
+
+-- Invalid DDL with COMMIT
+CREATE TABLE hr.bad_table (id NUMBER);
+COMMIT;

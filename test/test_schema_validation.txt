@@ -1,0 +1,10 @@
+-- Valid Schema Usage
+CREATE TABLE hr.employees (id NUMBER);
+INSERT INTO hr.employees VALUES (1);
+
+-- Missing Schema
+CREATE TABLE departments (id NUMBER);
+INSERT INTO departments VALUES (1);
+
+-- Mixed Schemas (should fail consistency)
+CREATE TABLE finance.accounts (id NUMBER);

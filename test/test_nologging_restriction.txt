@@ -1,0 +1,6 @@
+-- Invalid NOLOGGING
+CREATE TABLE hr.test NOLOGGING (id NUMBER);
+ALTER TABLE hr.test NOLOGGING;
+
+-- Valid (LOGGING is default or explicit)
+CREATE TABLE hr.test LOGGING (id NUMBER);

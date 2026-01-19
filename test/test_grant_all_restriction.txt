@@ -1,0 +1,6 @@
+-- Invalid GRANT ALL
+GRANT ALL ON hr.employees TO public;
+GRANT ALL PRIVILEGES ON hr.employees TO public;
+
+-- Valid specific grants
+GRANT SELECT, INSERT ON hr.employees TO public;

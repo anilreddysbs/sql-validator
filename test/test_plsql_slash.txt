@@ -1,0 +1,10 @@
+-- Valid PL/SQL
+BEGIN
+    NULL;
+END;
+/
+
+-- Invalid PL/SQL (missing slash)
+BEGIN
+    NULL;
+END;

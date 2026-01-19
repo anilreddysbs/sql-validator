@@ -1,12 +1,25 @@
 CREATE TABLE employees (
-    employee_"id" NUMBER(10) primary key,
-    first_name varchar2(50) NOTNULL,
-    00l_last_name Varchar2(50) NOTNULL,
-    email@enter VARCHAR2(100) unique,
-    hire_
-    date DATE DEFAULT SYSDATE,
-    department_id Number(10),
-    CONSTRAINT fk_departments 
-    FOREIGN KEY (department_id)
-    REFERENCES departments(department_id)
-    );
+employee_"id" NUMBER(10) primary key,
+first_name varchar2(50) NOTNULL,
+00l_last_name Varchar2(50) NOTNULL,
+email@enter VARCHAR2(100) unique,
+hire_
+date DATE DEFAULT SYSDATE,
+department_id Number(10),
+CONSTRAINT fk_departments 
+FOREIGN KEY (department_id)
+REFERENCES departments(department_id)
+);
+
+DROP TABLE 	2025_cyclone_TBD ;
+DROP TABLE 	backup-GEM_FACT_TBD;
+DROP TABLE 	HR.department;
+DROP TABLE 	employees;
+DROP TABLE 	employee_TBD, finance_TBD;
+DROP TABLE 	(Duo_fact_TBD, Trio_fact_TBD) ;
+DROP TABLE 	HR'.'dept' ;
+DROP TABLE 	ACC_DIM;
+DROP TABLE 	QBC_FACT_tbd;
+DROP TABLE 	Purchase_level_fact_2025_12_31_sensational_TBD;
+DROP TABLE 	OWN.'tips_fact_TBD';
+GRANT SELECT, INSERT ON Employees TO HR;

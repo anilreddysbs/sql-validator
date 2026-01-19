@@ -1,0 +1,19 @@
+-- Valid backup table
+CREATE TABLE hr.backup_data_TBD (id NUMBER);
+CREATE TABLE hr.archive_BKP_TBD (id NUMBER);
+
+-- Invalid backup tables
+CREATE TABLE hr.backup_data (id NUMBER);
+CREATE TABLE hr.archive_BKP (id NUMBER);
+
+-- Prefix Usage
+CREATE TABLE hr.backup_data (id NUMBER); -- Should fail
+
+
+-- Missing Tablespace
+CREATE TABLE hr.data_TBD (id NUMBER);
+-- Wrong Tablespace
+CREATE TABLE hr.data2_TBD (id NUMBER) TABLESPACE USERS;
+-- Correct Tablespace
+CREATE TABLE hr.data3_TBD (id NUMBER) TABLESPACE BACKUP_TBS;
+

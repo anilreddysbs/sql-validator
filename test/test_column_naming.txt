@@ -1,0 +1,12 @@
+-- Valid Column Names
+CREATE TABLE hr.emp (
+    emp_id NUMBER,
+    first_name VARCHAR2(50)
+);
+
+-- Invalid Column Names
+CREATE TABLE hr.bad_emp (
+    "EmpId" NUMBER,              -- Quoted
+    1_name VARCHAR2(50),         -- Starts with number
+    email@addr VARCHAR2(100)     -- Invalid char
+);

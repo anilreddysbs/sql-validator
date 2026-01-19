@@ -35,14 +35,22 @@ def run_tests():
             results, summary = validate_sql_text(content, checks_path=checks_path)
             
             if not results:
-                print("  [PASS] No violations found.")
+                print("  [WARN] No results returned (empty file?).")
             else:
-                print(f"  [FAIL] Found {len(results)} violations:")
+                violations_count = 0
                 for res in results:
-                    rule_id = res.get('rule_id', 'Unknown Rule')
-                    message = res.get('message', 'No message')
-                    line = res.get('line', 'N/A')
-                    print(f"    - [Line {line}] {rule_id}: {message}")
+                    # check for failures in validations
+                    failures = [v for v in res['validations'] if "❌" in v]
+                    if failures:
+                        violations_count += len(failures)
+                        print(f"    - Query {res['index']}: {res['query'].strip()[:50]}...")
+                        for msg in failures:
+                            print(f"      {msg}")
+                
+                if violations_count == 0:
+                    print(f"  [PASS] Checked {len(results)} statements. No violations.")
+                else:
+                    print(f"  [FAIL] Found {violations_count} violations in {len(results)} statements.")
         
         except Exception as e:
             print(f"  [ERROR] Error validating {filename}: {e}")

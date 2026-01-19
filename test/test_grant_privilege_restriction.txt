@@ -1,0 +1,9 @@
+-- Invalid privileges for normal user
+GRANT UPDATE ON hr.employees TO public;
+GRANT DELETE ON hr.employees TO public;
+
+-- Valid privileges (SELECT only)
+GRANT SELECT ON hr.employees TO public;
+
+-- Valid privileges for LOADER (any)
+GRANT UPDATE ON hr.employees TO LOADER;

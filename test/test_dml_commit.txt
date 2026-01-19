@@ -1,0 +1,8 @@
+INSERT INTO hr.employees VALUES (1, 'John');
+COMMIT;
+
+-- Missing COMMIT
+INSERT INTO hr.employees VALUES (2, 'Jane');
+
+UPDATE hr.employees SET name='Doe' WHERE id=1;
+-- Missing COMMIT

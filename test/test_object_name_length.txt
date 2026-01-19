@@ -1,0 +1,5 @@
+-- Valid length
+CREATE TABLE hr.short_name (id NUMBER);
+
+-- Invalid length (>30 chars)
+CREATE TABLE hr.this_table_name_is_way_too_long_for_oracle_to_handle (id NUMBER);

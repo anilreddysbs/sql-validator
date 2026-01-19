@@ -1,0 +1,6 @@
+-- Valid Grant
+GRANT SELECT ON hr.employees TO public;
+
+-- Invalid Grant with COMMIT
+GRANT SELECT ON hr.employees TO public;
+COMMIT;

@@ -1,0 +1,6 @@
+-- Valid semicolon
+SELECT * FROM hr.employees;
+INSERT INTO hr.employees VALUES(1);
+
+-- Missing semicolon
+SELECT * FROM hr.employees

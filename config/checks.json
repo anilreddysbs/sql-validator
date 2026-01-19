@@ -33,13 +33,9 @@
     "enabled": true,
     "rule_name": "Table Naming Convention"
   },
-  "ddl_schema_prefix": {
+  "schema_validation": {
     "enabled": true,
-    "rule_name": "DDL Schema Prefix"
-  },
-  "single_schema": {
-    "enabled": true,
-    "rule_name": "Single Schema Per File"
+    "rule_name": "Schema Validation"
   },
   "backup_grant_select": {
     "enabled": true,
@@ -78,5 +74,16 @@
   "column_naming": {
     "enabled": true,
     "rule_name": "Column Naming Convention"
+  },
+  "tablespace_restriction": {
+    "enabled": true,
+    "rule_name": "Tablespace Restriction",
+    "forbidden_tablespaces": [
+      "USERS",
+      "SYSTEM",
+      "SYSAUX",
+      "TEMP",
+      "DEFAULT"
+    ]
   }
 }

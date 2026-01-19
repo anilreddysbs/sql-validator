@@ -1,0 +1,7 @@
+-- Invalid Tablespace
+CREATE TABLE hr.u_test (id NUMBER) TABLESPACE USERS;
+CREATE TABLE hr.s_test (id NUMBER) TABLESPACE SYSTEM;
+
+-- Valid Tablespace
+CREATE TABLE hr.d_test (id NUMBER) TABLESPACE DATA_TBS;
+CREATE TABLE hr.no_ts_test (id NUMBER);

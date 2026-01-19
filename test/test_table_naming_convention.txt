@@ -1,0 +1,9 @@
+-- Valid names
+CREATE TABLE hr.employees (id NUMBER);
+CREATE TABLE hr.dept_locations (id NUMBER);
+
+-- Invalid names
+CREATE TABLE hr."QuotedName" (id NUMBER);
+CREATE TABLE hr.123start_num (id NUMBER);
+CREATE TABLE hr.invalid$char (id NUMBER);
+CREATE TABLE hr.hyphen-name (id NUMBER);
