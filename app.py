@@ -45,13 +45,10 @@ def validate_route():
     email = request.form.get('email', '')
     team = request.form.get('team', '')
     cr_number = request.form.get('cr_number', '')
-    backup_toggle = request.form.get('backup_toggle', 'false').lower() == 'true'
-
     # run validator
     results, summary = validate_sql_text(
         content,
-        checks_path="config/checks.json",
-        backup_toggle=backup_toggle
+        checks_path="config/checks.json"
     )
 
     # -----------------------------

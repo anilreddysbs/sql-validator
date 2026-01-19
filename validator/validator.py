@@ -2,7 +2,7 @@
 from .parser import split_sql_queries
 from .engine import RuleEngine
 
-def validate_sql_text(text, checks_path="config/checks.json", backup_toggle=False):
+def validate_sql_text(text, checks_path="config/checks.json"):
     """
     Parse SQL text into logical statements and run all active rules
     against each statement. Return (results, summary).
@@ -24,7 +24,7 @@ def validate_sql_text(text, checks_path="config/checks.json", backup_toggle=Fals
         total += 1
         rule_messages = []
         failure_found = False
-        context = {"backup_toggle": backup_toggle}
+        context = {}
 
         for rule in rules:
             try:
