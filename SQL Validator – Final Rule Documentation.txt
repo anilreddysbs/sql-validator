@@ -108,24 +108,26 @@ CREATE TABLE hr.shortname (id NUMBER);
 ❌ FAIL
 CREATE TABLE hr.this_is_a_very_long_table_name_exceeding_limit (id NUMBER);
 
-6️⃣ Backup Table Suffix Rule
-
+6️⃣ Backup Table Rules
 File: validator/rules/backup_table_rule.py
 Rule ID: backup_table_suffix
 
 ✅ Purpose
-Ensure backup tables follow naming standards.
+Ensure backup tables follow strict naming and storage policies.
 
 🔍 What it checks
-If table indicates backup (has _BKP, _BACKUP suffix):
-- Must end with _TBD
-- Lifecycle warning issued
+1. Suffix: Must end with _TBD
+2. Tablespace: Must be created in a backup tablespace (e.g., BACKUP_TBS)
+3. Lifecycle: Issues warning to drop after usage.
+4. Identification: Applies to tables starting with BACKUP_ or containing _BACKUP / _BKP.
 
 ✔ PASS
-CREATE TABLE employees_bkp_tbd (id NUMBER);
+CREATE TABLE hr.backup_data_TBD (id NUMBER) TABLESPACE BACKUP_TBS;
 
 ❌ FAIL
-CREATE TABLE employees_bkp (id NUMBER);
+CREATE TABLE hr.backup_data (id NUMBER);         -- Missing _TBD
+CREATE TABLE hr.backup_data_TBD (id NUMBER);     -- Missing Tablespace
+CREATE TABLE hr.backup_data_TBD (id NUMBER) TABLESPACE USERS; -- Wrong Tablespace
 
 7️⃣ Table Naming Convention Rule
 
@@ -149,42 +151,32 @@ CREATE TABLE hr."employees" (id NUMBER);  -- Quoted
 CREATE TABLE hr.1emp (id NUMBER);         -- Starts with number
 CREATE TABLE hr.emp-1 (id NUMBER);        -- Special char
 
-8️⃣ DDL Schema Prefix Rule
-
-File: validator/rules/ddl_schema_prefix_rule.py
-Rule ID: ddl_schema_prefix
+8️⃣ Schema Validation Rule (Prefix & Consistency)
+File: validator/rules/schema_validation_rule.py
+Rule ID: schema_validation
 
 ✅ Purpose
-Ensure all DDL statements explicitly specify the schema.
+Unified rule to enforce schema usage.
 
 🔍 What it checks
-- CREATE/ALTER/DROP/TRUNCATE TABLE
-- CREATE INDEX/VIEW/SEQUENCE/SYNONYM
-- GRANT/REVOKE
+1. Prefix: DDL & DML (INSERT, UPDATE, DELETE) must have schema prefix (e.g., schema.table).
+2. Consistency: All statements in a file must belong to the same schema.
+3. No Quotes: Schema/Object names must not be quoted.
 
 ✔ PASS
-CREATE TABLE hr.employees (id NUMBER);
+CREATE TABLE hr.emp (id NUMBER);
+INSERT INTO hr.emp VALUES (1);
 
 ❌ FAIL
-CREATE TABLE employees (id NUMBER);       -- Missing schema
+CREATE TABLE emp (id NUMBER);     -- Missing prefix
+INSERT INTO emp VALUES (1);       -- Missing prefix
+CREATE TABLE "hr".emp ...         -- Quoted schema
 
-9️⃣ Single Schema Per File
-
-File: validator/rules/single_schema_rule.py
-Rule ID: single_schema
-
-✅ Purpose
-Ensure each SQL file contains DDL for only one schema.
-
-✔ PASS
+Consistency Fail:
 CREATE TABLE hr.t1 ...
-CREATE TABLE hr.t2 ...
+CREATE TABLE finance.t2 ...       -- Mixed schemas in one file
 
-❌ FAIL
-CREATE TABLE hr.t1 ...
-CREATE TABLE finance.t2 ...
-
-🔟 Backup Table Grant Restriction
+9️⃣ Backup Table Grant Restriction
 
 File: validator/rules/backup_grant_rule.py
 Rule ID: backup_grant_select
@@ -198,7 +190,7 @@ GRANT SELECT ON hr.emp_bkp_tbd TO LOADER;
 ❌ FAIL
 GRANT SELECT ON hr.emp_bkp_tbd TO APP_USER;
 
-1️⃣1️⃣ GRANT ALL Restriction
+🔟 GRANT ALL Restriction
 
 File: validator/rules/grant_all_rule.py
 Rule ID: grant_all_restriction
@@ -209,7 +201,7 @@ Prevent excessive privileges. GRANT ALL is forbidden.
 ❌ FAIL
 GRANT ALL ON hr.emp TO user;
 
-1️⃣2️⃣ Grant Privilege Restriction
+1️⃣1️⃣ Grant Privilege Restriction
 
 File: validator/rules/grant_privilege_rule.py
 Rule ID: grant_privilege_restriction
@@ -226,7 +218,7 @@ GRANT INSERT ON hr.emp TO LOADER;
 ❌ FAIL
 GRANT INSERT ON hr.emp TO app_user;
 
-1️⃣3️⃣ Backup Table Drop Limit
+1️⃣2️⃣ Backup Table Drop Limit
 
 File: validator/rules/backup_drop_limit_rule.py
 Rule ID: backup_drop_limit
@@ -238,7 +230,7 @@ Max 400 _TBD drops per file.
 ❌ FAIL
 File containing > 400 DROP TABLE ... _TBD statements.
 
-1️⃣4️⃣ NOLOGGING Restriction
+1️⃣3️⃣ NOLOGGING Restriction
 
 File: validator/rules/nologging_rule.py
 Rule ID: nologging_restriction
@@ -252,7 +244,7 @@ CREATE TABLE hr.emp (id NUMBER);
 ❌ FAIL
 CREATE TABLE hr.emp (id NUMBER) NOLOGGING;
 
-1️⃣5️⃣ Semicolon Requirement Rule
+1️⃣4️⃣ Semicolon Requirement Rule
 
 File: validator/rules/semicolon_rule.py
 Rule ID: semicolon_required
@@ -265,3 +257,25 @@ DELETE FROM emp WHERE id=1;
 
 ❌ FAIL
 DELETE FROM emp WHERE id=1
+
+1️⃣5️⃣ Tablespace Restriction Rule
+File: validator/rules/tablespace_restriction_rule.py
+Rule ID: tablespace_restriction
+
+✅ Purpose
+Prevent object creation in system or default tablespaces.
+
+🔍 What it checks
+Objects cannot be created in:
+- USERS
+- SYSTEM
+- SYSAUX
+- TEMP
+- DEFAULT
+
+✔ PASS
+CREATE TABLE hr.t1 (id NUMBER) TABLESPACE DATA_TBS;
+
+❌ FAIL
+CREATE TABLE hr.t1 (id NUMBER) TABLESPACE USERS;
+CREATE TABLE hr.t1 (id NUMBER) TABLESPACE SYSTEM;
