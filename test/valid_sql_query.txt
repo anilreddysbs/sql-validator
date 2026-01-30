@@ -1,0 +1,41 @@
+-- Compliant SQL Script with AI Triggers
+-- This file passes all static regex rules but should trigger AI Performance/Logic warnings.
+
+-- 1. Table Naming: Starts with T_, <30 chars
+CREATE TABLE T_EMPLOYEE_MASTER (
+    EMP_ID NUMBER,
+    EMP_NAME VARCHAR2(100),
+    DEPT_ID NUMBER,
+    JOIN_DATE DATE
+) TABLESPACE DATAMART;
+
+-- [AI Trigger: Logic/Best Practice]
+-- Creating a table and immediately dropping it is usually a mistake or debugging artifact.
+CREATE TABLE T_TEMP_TEST (ID NUMBER) TABLESPACE DATAMART;
+DROP TABLE T_TEMP_TEST;
+
+-- [AI Trigger: Performance]
+-- Updating with a function on the column side (non-sargable) prevents index usage.
+UPDATE T_EMPLOYEE_MASTER 
+SET EMP_NAME = 'Active' 
+WHERE TO_CHAR(JOIN_DATE, 'YYYY') = '2023';
+
+-- [AI Trigger: Dangerous Logic]
+-- DELETE without WHERE clause (wipes entire table)
+DELETE FROM T_EMPLOYEE_MASTER;
+
+-- [AI Trigger: Performance]
+-- Cartesian Product Risk (Join without ON condition)
+SELECT A.EMP_NAME, B.DEPT_NAME
+FROM T_EMPLOYEE_MASTER A, T_DEPT_MASTER B;
+
+-- 2. Backup Table: Ends with _TBD, in backup tablespace
+CREATE TABLE T_EMP_BKP_TBD TABLESPACE BKP_DATA AS SELECT * FROM T_EMPLOYEE_MASTER;
+GRANT SELECT ON T_EMP_BKP_TBD TO LOADER;
+
+-- 6. PL/SQL with Slash (Parser Test)
+CREATE OR REPLACE PROCEDURE PROC_UPDATE_EMP AS
+BEGIN
+    NULL;
+END;
+/

@@ -54,6 +54,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
     output.innerHTML = "<p>🔄 Validating, please wait...</p>";
 
     try {
+        // --- STEP 1: Static Validation (Fast) ---
         const response = await fetch("/validate", {
             method: "POST",
             body: formData
@@ -63,18 +64,22 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
 
         if (data.error) {
             output.innerHTML = `<p class="error">${data.error}</p>`;
-            // Do not update fingerprint on error, so they can try again if it was a transient error (though usually logic error)
-            // Actually, if it's a validation error (like empty file), we might want to let them retry?
-            // But if the server says "error", it implies invalid request. 
-            // Better to NOT update fingerprint on error, so they can click again if needed (e.g. server glitch).
             return;
         }
 
-        // Update fingerprint only on successful validation response
         lastFingerprint = currentFingerprint;
 
-        // Summary
-        output.innerHTML = `
+        // Render Static Results First
+        let html = "";
+
+        // Placeholder for AI Summary (to be filled later)
+        html += `<div id="ai-loading-container" style="text-align:center; padding: 20px; background:#f9f9f9; border-radius:8px; margin-bottom:20px;">
+                    <p>⚡ Static analysis complete. <strong>AI is analyzing logic...</strong> <span class="loader-spinner">⏳</span></p>
+                 </div>
+                 <div id="ai-summary-container"></div>`;
+
+        // Standard Summary
+        html += `
           <h3>Validation Summary:</h3>
           <ul>
             <li><strong>Number of SQL queries:</strong> ${data.summary.total}</li>
@@ -84,33 +89,118 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
           <h3>Validations Performed:</h3>
         `;
 
-        // Detailed results
-        data.results.forEach(item => {
-            output.innerHTML += `
-              <div class="result-card">
+        // Detailed results (Card container)
+        html += `<div id="card-container">`;
+        data.results.forEach((item, index) => {
+            html += `
+              <div class="result-card" data-index="${index}">
                   <pre><strong>Query:</strong>\n${item.query}</pre>
-                  <ul style="margin-top: 10px; padding-left: 20px;">
+                  <ul class="validation-list" style="margin-top: 10px; padding-left: 20px;">
                     ${item.validations.map(v => {
                 let cls;
                 if (v.startsWith("❌")) {
                     cls = "error";
                 } else if (v.startsWith("⚠️")) {
                     cls = "warning";
+                } else if (v.startsWith("🧠")) {
+                    cls = "ai-msg";
                 } else {
                     cls = "success";
                 }
                 return `<li class="${cls}">${v}</li>`;
             }).join("")}
                   </ul>
-              </div>
-            `;
+              </div>`;
         });
+        html += `</div>`;
 
-        // Enable PDF download button
+        output.innerHTML = html;
+
+        // Show download button immediately (contains static report)
         if (data.pdf_url) {
             topDownloadBtn.style.display = "inline-block";
-            topDownloadBtn.onclick = () => window.open(data.pdf_url, "_blank");
+            topDownloadBtn.onclick = () => window.location.href = data.pdf_url;
         }
+
+        // --- STEP 2: Async AI Analysis (Slow) ---
+        // We don't await this blocking the UI. We let it run.
+        fetch("/analyze_ai", {
+            method: "POST",
+            body: formData
+        })
+            .then(res => res.json())
+            .then(aiData => {
+                if (aiData.error) {
+                    console.error("AI Error:", aiData.error);
+                    document.getElementById("ai-loading-container").innerHTML = `<p style="color:red">AI Analysis failed: ${aiData.error}</p>`;
+                    return;
+                }
+
+                // Remove Loading Indicator
+                document.getElementById("ai-loading-container").style.display = "none";
+
+                // 1. Inject AI Summary & Global Insights
+                const aiContainer = document.getElementById("ai-summary-container");
+                let aiHtml = "";
+
+                // Executive Summary
+                if (aiData.summary.ai_summary) {
+                    aiHtml += `
+            <div class="ai-summary-card">
+                <div class="ai-header">🤖 AI Executive Summary</div>
+                <div>${aiData.summary.ai_summary}</div>
+            </div>`;
+                }
+
+                // Global Insights
+                if (aiData.summary.ai_insights && aiData.summary.ai_insights.length > 0) {
+                    aiHtml += `<h3 class="ai-section-title">🧠 AI Logic & Performance Analysis</h3>`;
+                    aiData.summary.ai_insights.forEach(insight => {
+                        aiHtml += `
+                 <div class="ai-insight-card ai-insight-${insight.severity}">
+                    <strong>${insight.type}:</strong> ${insight.message}
+                 </div>`;
+                    });
+                    aiHtml += `<hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">`;
+                }
+
+                // Fade-in effect for the new content
+                aiContainer.innerHTML = aiHtml;
+                aiContainer.style.opacity = 0;
+                aiContainer.style.transition = "opacity 0.5s";
+                requestAnimationFrame(() => aiContainer.style.opacity = 1);
+
+                // 2. Inject Per-Query AI Insights
+                const cardContainer = document.getElementById("card-container");
+                const cards = cardContainer.getElementsByClassName("result-card");
+
+                aiData.results.forEach((item, index) => {
+                    // Find new AI messages (start with 🧠)
+                    const aiMessages = item.validations.filter(v => v.startsWith("🧠"));
+
+                    if (aiMessages.length > 0 && cards[index]) {
+                        const ul = cards[index].querySelector(".validation-list");
+
+                        aiMessages.forEach(msg => {
+                            // Check if already exists (paranoia check)
+                            const li = document.createElement("li");
+                            li.className = "ai-msg";
+                            li.innerText = msg;
+                            li.style.opacity = "0";
+                            li.style.transition = "opacity 1s";
+                            ul.appendChild(li);
+
+                            // Trigger reflow for transition
+                            requestAnimationFrame(() => li.style.opacity = "1");
+                        });
+                    }
+                });
+
+            })
+            .catch(err => {
+                console.error("AI Fetch Error:", err);
+                document.getElementById("ai-loading-container").innerText = "";
+            });
 
     } catch (err) {
         output.innerHTML = `<p class="error">❌ An error occurred.</p>`;

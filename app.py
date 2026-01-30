@@ -45,10 +45,11 @@ def validate_route():
     email = request.form.get('email', '')
     team = request.form.get('team', '')
     cr_number = request.form.get('cr_number', '')
-    # run validator
+    # run validator (Static Only)
     results, summary = validate_sql_text(
         content,
-        checks_path="config/checks.json"
+        checks_path="config/checks.json",
+        skip_ai=True
     )
 
     # -----------------------------
@@ -86,6 +87,32 @@ def download_file(filename):
     if not os.path.exists(path):
         return "Not found", 404
     return send_file(path, as_attachment=True)
+
+@app.route('/analyze_ai', methods=['POST'])
+def analyze_ai_route():
+    if 'sqlFile' not in request.files:
+        return jsonify({"error":"No file part 'sqlFile'"}), 400
+
+    file = request.files['sqlFile']
+    if file.filename == '':
+        return jsonify({"error":"No selected file"}), 400
+    
+    # We re-read content (it's fast enough)
+    content = file.read().decode('utf-8', errors='ignore')
+    if not content.strip():
+        return jsonify({"error": "File is empty"}), 400
+
+    # Run FULL validation (AI Enabled)
+    results, summary = validate_sql_text(
+        content,
+        checks_path="config/checks.json",
+        skip_ai=False
+    )
+
+    return jsonify({
+        "results": results, 
+        "summary": summary
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

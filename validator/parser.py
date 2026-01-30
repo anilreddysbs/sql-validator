@@ -205,7 +205,8 @@ def _merge_plsql_blocks(chunks):
     i = 0
     L = len(chunks)
     # patterns to detect PL/SQL start tokens
-    start_re = re.compile(r'^\s*(declare|begin)\b', re.IGNORECASE)
+    # Updated to include CREATE [OR REPLACE] PROCEDURE|FUNCTION|PACKAGE|TRIGGER|TYPE
+    start_re = re.compile(r'^\s*((create(\s+or\s+replace)?\s+(procedure|function|package|trigger|type|body))|declare|begin)\b', re.IGNORECASE)
     # count begin tokens and end; tokens inside a token
     begin_word_re = re.compile(r'\bbegin\b', re.IGNORECASE)
     end_stmt_re = re.compile(r'\bend\b\s*;', re.IGNORECASE)

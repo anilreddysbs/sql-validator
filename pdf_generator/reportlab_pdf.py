@@ -98,6 +98,30 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
     flow.append(Spacer(1, 10))
 
     # -------------------------
+    # AI SECTION
+    # -------------------------
+    if summary.get('ai_summary'):
+        flow.append(Paragraph("AI Executive Summary", section_title_style))
+        flow.append(Paragraph(summary['ai_summary'], normal_style))
+        flow.append(Spacer(1, 12))
+
+    if summary.get('ai_insights'):
+        flow.append(Paragraph("AI Logic & Performance Analysis", section_title_style))
+        for insight in summary['ai_insights']:
+            # Color code based on severity
+            sev = insight.get('severity', 'Low')
+            color = "#333333"
+            if sev == 'High': color = "#b91c1c" # red
+            elif sev == 'Medium': color = "#b45309" # amber
+
+            p_text = f"<b>[{insight.get('type')}]</b> <font color='{color}'>{insight.get('message')}</font>"
+            flow.append(Paragraph(p_text, normal_style))
+        
+        flow.append(Spacer(1, 12))
+        flow.append(HRFlowable(width="100%", thickness=1, color="#cccccc"))
+        flow.append(Spacer(1, 10))
+
+    # -------------------------
     # SUMMARY
     # -------------------------
     summary_text = (
