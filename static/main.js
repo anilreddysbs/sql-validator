@@ -74,7 +74,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
 
         // Placeholder for AI Summary (to be filled later)
         html += `<div id="ai-loading-container" style="text-align:center; padding: 20px; background:#f9f9f9; border-radius:8px; margin-bottom:20px;">
-                    <p>⚡ Static analysis complete. <strong>AI is analyzing logic...</strong> <span class="loader-spinner">⏳</span></p>
+                    <p>⚡ Static analysis complete. <strong>AI is thinking...</strong> <span class="loader-spinner"></span></p>
                  </div>
                  <div id="ai-summary-container"></div>`;
 
