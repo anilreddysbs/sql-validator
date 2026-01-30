@@ -1,0 +1,21 @@
+services:
+  # 1. Basic Version (Main Branch)
+  - type: web
+    name: sql-validator-basic
+    env: python
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    plan: free
+
+  # 2. AI Version (AI Branch)
+  - type: web
+    name: sql-validator-ai
+    env: python
+    branch: ai-integration
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false # User must enter this in dashboard
+    plan: free
