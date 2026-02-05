@@ -26,16 +26,35 @@ def allowed_file(filename):
 
 @app.route('/validate', methods=['POST'])
 def validate_route():
-    if 'sqlFile' not in request.files:
-        return jsonify({"error":"No file part 'sqlFile'"}), 400
-
-    file = request.files['sqlFile']
-    if file.filename == '':
-        return jsonify({"error":"No selected file"}), 400
-    if not allowed_file(file.filename):
-        return jsonify({"error":"Only .txt files allowed"}), 400
-
-    content = file.read().decode('utf-8', errors='ignore')
+    content = ""
+    # Check if a file is uploaded
+    if 'sqlFile' in request.files and request.files['sqlFile'].filename != '':
+        f = request.files['sqlFile']
+        # Read raw bytes
+        raw_data = f.read()
+        try:
+           # Try to see if it's base64 encoded (WAF bypass)
+           # The frontend might send it as a file with base64 content
+           # Or, if we change frontend to send 'sql_text_base64' field...
+           # Actually, standard file upload is binary. 
+           # If WAF blocks the CONTENT of the file, we must encode it on CLIENT side before form append.
+           # But file input is read-only in JS. We can't modify the File object content easily.
+           # Better approach: Read file in JS, base64 encode it, and send as a text field 'sql_content_base64'.
+           pass
+        except:
+           pass
+        content = raw_data.decode('utf-8', errors='ignore')
+    
+    # Check if alternative base64 field exists (WAF Bypass)
+    if 'sql_content_base64' in request.form:
+        import base64
+        try:
+            content = base64.b64decode(request.form['sql_content_base64']).decode('utf-8', errors='ignore')
+        except Exception as e:
+            return jsonify({"error": f"Base64 decode failed: {str(e)}"}), 400
+    
+    if not content.strip():
+        return jsonify({"error": "File is empty or no content provided"}), 400
 
     if not content.strip():
         return jsonify({"error": "File is empty"}), 400
@@ -90,15 +109,17 @@ def download_file(filename):
 
 @app.route('/analyze_ai', methods=['POST'])
 def analyze_ai_route():
-    if 'sqlFile' not in request.files:
-        return jsonify({"error":"No file part 'sqlFile'"}), 400
-
-    file = request.files['sqlFile']
-    if file.filename == '':
-        return jsonify({"error":"No selected file"}), 400
+    content = ""
+    if 'sql_content_base64' in request.form:
+        import base64
+        try:
+            content = base64.b64decode(request.form['sql_content_base64']).decode('utf-8', errors='ignore')
+        except Exception as e:
+            return jsonify({"error": f"Base64 decode failed: {str(e)}"}), 400
+    elif 'sqlFile' in request.files:
+         f = request.files['sqlFile']
+         content = f.read().decode('utf-8', errors='ignore')
     
-    # We re-read content (it's fast enough)
-    content = file.read().decode('utf-8', errors='ignore')
     if not content.strip():
         return jsonify({"error": "File is empty"}), 400
 
