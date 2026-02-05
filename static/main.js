@@ -224,16 +224,6 @@ async function runValidation(formData, currentFingerprint) {
                 if (aiData.pdf_url) {
                     const topDownloadBtn = document.getElementById("topDownloadBtn");
                     topDownloadBtn.onclick = () => window.location.href = aiData.pdf_url;
-
-                    // Optional: Flash button or change text to indicate "Full Report Ready"
-                    const originalText = topDownloadBtn.innerText;
-                    topDownloadBtn.innerHTML = "📄 Download Full Report (AI Included)";
-                    topDownloadBtn.classList.add("pulse-animation"); // Assuming you might want an anim later, or just simple text change
-
-                    setTimeout(() => {
-                        // remove potential animation class if added
-                        topDownloadBtn.classList.remove("pulse-animation");
-                    }, 2000);
                 }
 
             })

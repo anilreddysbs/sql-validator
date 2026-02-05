@@ -110,9 +110,8 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
         for insight in summary['ai_insights']:
             # Color code based on severity
             sev = insight.get('severity', 'Low')
-            color = "#333333"
-            if sev == 'High': color = "#b91c1c" # red
-            elif sev == 'Medium': color = "#b45309" # amber
+            # User requested BLUE for AI suggestions
+            color = "blue"
 
             p_text = f"<b>[{insight.get('type')}]</b> <font color='{color}'>{insight.get('message')}</font>"
             flow.append(Paragraph(p_text, normal_style))
