@@ -109,9 +109,35 @@ def analyze_ai_route():
         skip_ai=False
     )
 
+    # -----------------------------
+    # 🔥 RE-GENERATE PDF (WITH AI)
+    # -----------------------------
+    # Get metadata again (request.form is available from the same FormData)
+    name = request.form.get('name', '')
+    email = request.form.get('email', '')
+    team = request.form.get('team', '')
+    cr_number = request.form.get('cr_number', '')
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Add _AI suffix to distinguish
+    out_filename = f"{cr_number}_{timestamp}_AI.pdf"
+    out_path = os.path.join(OUTPUT_FOLDER, out_filename)
+
+    run_meta = {
+        "name": name,
+        "email": email,
+        "team": team,
+        "cr_number": cr_number,
+        "generated_at": datetime.utcnow().isoformat()
+    }
+
+    generate_pdf(run_meta, results, summary, out_path)
+    pdf_url = url_for('download_file', filename=out_filename)
+
     return jsonify({
         "results": results, 
-        "summary": summary
+        "summary": summary,
+        "pdf_url": pdf_url
     })
 
 if __name__ == '__main__':
