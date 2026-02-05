@@ -156,6 +156,10 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
                 color = "red"
             elif clean.startswith("⚠️"):
                 color = "#FFA500"  # orange / yellow
+            elif clean.startswith("🧠"):
+                color = "blue"
+                # Replace emoji with text to avoid 'tofu' (■) in PDF
+                msg = msg.replace("🧠", "[AI]")
             else:
                 color = "green"
 
