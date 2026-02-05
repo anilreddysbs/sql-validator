@@ -245,4 +245,4 @@ async function runValidation(formData) {
     } catch (err) {
         output.innerHTML = `<p class="error">❌ An error occurred.</p>`;
     }
-});
+}
