@@ -52,18 +52,18 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
             // Yes, let's remove the raw file to prevent WAF from scanning it.
             formData.delete("sqlFile");
 
-            await runValidation(formData);
+            await runValidation(formData, currentFingerprint);
         };
         reader.readAsText(file); // Read as text then encode
         return; // Stop here, let the reader callback handle submission
     }
 
     // Call helper function if no file (rare case, form requires file but paranoia)
-    await runValidation(formData);
+    await runValidation(formData, currentFingerprint);
 });
 
 // Extracted validation logic
-async function runValidation(formData) {
+async function runValidation(formData, currentFingerprint) {
     const output = document.getElementById("validationOutput");
     const resultDiv = document.getElementById("results");
     const topDownloadBtn = document.getElementById("topDownloadBtn");
