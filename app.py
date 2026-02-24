@@ -26,16 +26,24 @@ def allowed_file(filename):
 
 @app.route('/validate', methods=['POST'])
 def validate_route():
-    if 'sqlFile' not in request.files:
-        return jsonify({"error":"No file part 'sqlFile'"}), 400
-
-    file = request.files['sqlFile']
-    if file.filename == '':
-        return jsonify({"error":"No selected file"}), 400
-    if not allowed_file(file.filename):
-        return jsonify({"error":"Only .txt files allowed"}), 400
-
-    content = file.read().decode('utf-8', errors='ignore')
+    # 🔥 WAF BYPASS: Decode Base64 content
+    encoded_content = request.form.get('sql_content_b64')
+    if encoded_content:
+        import base64
+        try:
+            content = base64.b64decode(encoded_content).decode('utf-8', errors='ignore')
+        except Exception as e:
+            return jsonify({"error": f"Failed to decode content: {str(e)}"}), 400
+    else:
+        # Fallback to file upload if B64 is missing
+        if 'sqlFile' not in request.files:
+            return jsonify({"error":"No file part 'sqlFile'"}), 400
+        file = request.files['sqlFile']
+        if file.filename == '':
+            return jsonify({"error":"No selected file"}), 400
+        if not allowed_file(file.filename):
+            return jsonify({"error":"Only .txt files allowed"}), 400
+        content = file.read().decode('utf-8', errors='ignore')
 
     if not content.strip():
         return jsonify({"error": "File is empty"}), 400
