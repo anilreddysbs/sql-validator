@@ -20,6 +20,13 @@ class GrantPrivilegeRule(RuleBase):
         msgs = []
         name = self.params.get("rule_name", "Grant Privilege Restriction")
         privileged_user = self.params.get("privileged_user", "LOADER").upper()
+        
+        # Get aliases from global config (merged into params)
+        loader_aliases = self.params.get("loader_aliases", [])
+        valid_privileged_users = {privileged_user}
+        if loader_aliases:
+            valid_privileged_users.update(u.upper() for u in loader_aliases)
+            
         allowed_for_all = self.params.get("allowed_privileges", ["SELECT"])
         allowed_for_all = [p.upper() for p in allowed_for_all]
 
@@ -56,8 +63,8 @@ class GrantPrivilegeRule(RuleBase):
 
         # Check each grantee
         for grantee in grantees:
-            if grantee == privileged_user:
-                # LOADER can have any privilege
+            if grantee in valid_privileged_users:
+                # LOADER (or alias) can have any privilege
                 continue
             
             # For non-privileged users, check privileges

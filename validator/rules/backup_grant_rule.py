@@ -69,6 +69,13 @@ class BackupGrantRule(RuleBase):
         msgs = []
         name = self.params.get("rule_name", "Backup Table Grant Restriction")
         allowed_user = self.params.get("allowed_user", "LOADER").upper()
+        
+        # Get aliases from global config (merged into params)
+        loader_aliases = self.params.get("loader_aliases", [])
+        valid_users = {allowed_user}
+        if loader_aliases:
+            valid_users.update(u.upper() for u in loader_aliases)
+            
         suffixes = self.params.get("backup_suffixes", ["BACKUP", "BKP"])
 
         s = statements[idx].strip()
@@ -88,13 +95,17 @@ class BackupGrantRule(RuleBase):
             return msgs  # Not a backup table, skip
         
         # Check grantees
-        invalid_grantees = [g for g in grantees if g != allowed_user]
+        invalid_grantees = [g for g in grantees if g not in valid_users]
         
         if invalid_grantees:
             invalid_list = ', '.join(invalid_grantees)
+            allowed_str = allowed_user
+            if loader_aliases:
+                allowed_str += f" or aliases ({', '.join(loader_aliases)})"
+                
             msgs.append(self.fail(
                 f"{name}: GRANT SELECT on backup table '{table_name.upper()}' "
-                f"can only be given to {allowed_user}. Found: {invalid_list}."
+                f"can only be given to {allowed_str}. Found: {invalid_list}."
             ))
         else:
             msgs.append(self.ok(

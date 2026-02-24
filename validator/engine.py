@@ -44,8 +44,11 @@ class RuleEngine:
         Instantiate rules that are enabled in config.
         Inject 'rule_name' into each instance automatically.
         """
+        global_config = self.config.get("global_config", {})
 
         for rid, params in self.config.items():
+            if rid == "global_config":
+                continue
 
             # Skip disabled rules
             if not params.get("enabled", False):
@@ -61,11 +64,14 @@ class RuleEngine:
             rule_name = params.get("rule_name", rule_cls.__name__)
 
             # Inject name into params for access inside rule
-            params = dict(params)  # copy
-            params["rule_name"] = rule_name
+            # Global config is also injected here (merged)
+            # Rule specific params take precedence if there's a collision
+            merged_params = global_config.copy()
+            merged_params.update(params)
+            merged_params["rule_name"] = rule_name
 
             # Instantiate rule with params
-            inst = rule_cls(params)
+            inst = rule_cls(merged_params)
 
             # Attach convenience attribute
             inst.rule_name = rule_name

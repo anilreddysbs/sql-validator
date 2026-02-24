@@ -12,6 +12,17 @@ Each rule includes:
 
 These rules apply to Oracle-style SQL & PL/SQL.
 
+0️⃣ Global Configuration (Aliases)
+
+File: config/checks.json (under "global_config")
+
+✅ Purpose
+Define exception keywords for "LOADER" and "OWNER" concepts to handle environment-specific naming conventions.
+
+🔍 Configuration Keys
+- loader_aliases: List of user names treated as LOADER (privileged).
+- owner_aliases: List of schemas treated as valid owners (exception to single-schema rule).
+
 1️⃣ DML Commit Rule
 
 File: validator/rules/dml_commit.py
@@ -162,6 +173,7 @@ Unified rule to enforce schema usage.
 1. Prefix: DDL & DML (INSERT, UPDATE, DELETE) must have schema prefix (e.g., schema.table).
 2. Consistency: All statements in a file must belong to the same schema.
 3. No Quotes: Schema/Object names must not be quoted.
+4. Owner Aliases: Additional schemas listed in `owner_aliases` (Global Config) are allowed in the same file.
 
 ✔ PASS
 CREATE TABLE hr.emp (id NUMBER);
@@ -182,7 +194,7 @@ File: validator/rules/backup_grant_rule.py
 Rule ID: backup_grant_select
 
 ✅ Purpose
-Restrict usage of backup tables. Only LOADER user can SELECT from them.
+Restrict usage of backup tables. Only LOADER user (or configured `loader_aliases`) can SELECT from them.
 
 ✔ PASS
 GRANT SELECT ON hr.emp_bkp_tbd TO LOADER;
@@ -209,7 +221,7 @@ Rule ID: grant_privilege_restriction
 ✅ Purpose
 Restrict privileges for regular users.
 - Regular users: Only SELECT allowed
-- LOADER: Any privilege allowed
+- LOADER (and `loader_aliases`): Any privilege allowed
 
 ✔ PASS
 GRANT SELECT ON hr.emp TO app_user;
@@ -279,3 +291,22 @@ CREATE TABLE hr.t1 (id NUMBER) TABLESPACE DATA_TBS;
 ❌ FAIL
 CREATE TABLE hr.t1 (id NUMBER) TABLESPACE USERS;
 CREATE TABLE hr.t1 (id NUMBER) TABLESPACE SYSTEM;
+
+1️⃣6️⃣ Backup Drop Separation Rule
+
+File: validator/rules/backup_drop_separation_rule.py
+Rule ID: backup_drop_separation
+
+✅ Purpose
+Ensure that backup table drop scripts are isolated and not mixed with other DDL/DML statements.
+
+🔍 What it checks
+If a file contains ANY `DROP TABLE ... _TBD` statement, it must NOT contain any other statement types (like CREATE, INSERT, or DROP of non-backup tables).
+
+✔ PASS
+DROP TABLE hr.emp_bkp_tbd;
+DROP TABLE hr.dept_bkp_tbd;
+
+❌ FAIL
+DROP TABLE hr.emp_bkp_tbd;
+CREATE TABLE hr.new_table ...;   -- Mixed content

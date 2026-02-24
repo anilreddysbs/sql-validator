@@ -128,7 +128,14 @@ class SchemaValidationRule(RuleBase):
                         schema_stmt_map[schema_part] = []
                     schema_stmt_map[schema_part].append(i + 1)
 
-            if len(found_schemas) > 1:
+            # Check for multiple schemas, respecting aliases
+            owner_aliases = self.params.get("owner_aliases", [])
+            owner_aliases = {a.upper() for a in owner_aliases}
+            
+            # Filter out known aliases from the set of found schemas
+            non_alias_schemas = {s for s in found_schemas if s not in owner_aliases}
+            
+            if len(non_alias_schemas) > 1:
                 # Construct detailed error message
                 details = []
                 for sc in sorted(found_schemas):
@@ -138,7 +145,8 @@ class SchemaValidationRule(RuleBase):
                      details.append(f"{sc} (lines {lines})")
                 
                 msgs.append(self.fail(
-                    f"{name}: Multiple schemas detected in file: {', '.join(details)}. File must be single-schema."
+                    f"{name}: Multiple schemas detected in file: {', '.join(details)}. "
+                    f"File must be single-schema (excluding configured owner aliases: {', '.join(sorted(owner_aliases))})."
                 ))
             elif len(found_schemas) == 1:
                 # Optionally report success for single schema? 

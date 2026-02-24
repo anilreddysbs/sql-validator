@@ -1,4 +1,8 @@
 {
+  "global_config": {
+    "loader_aliases": [],
+    "owner_aliases": []
+  },
   "dml_commit": {
     "enabled": true,
     "rule_name": "DML Commit Validation"
@@ -85,5 +89,9 @@
       "TEMP",
       "DEFAULT"
     ]
+  },
+  "backup_drop_separation": {
+    "enabled": true,
+    "rule_name": "Backup Drop Separation"
   }
 }
