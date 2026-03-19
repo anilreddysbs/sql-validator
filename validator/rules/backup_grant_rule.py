@@ -105,12 +105,11 @@ class BackupGrantRule(RuleBase):
                 
             msgs.append(self.fail(
                 f"{name}: GRANT SELECT on backup table '{table_name.upper()}' "
-                f"can only be given to {allowed_str}. Found: {invalid_list}."
+                f"is restricted to authorized users only (LOADER/designated schemas)."
             ))
         else:
             msgs.append(self.ok(
-                f"{name}: GRANT SELECT on backup table '{table_name.upper()}' "
-                f"correctly granted to {allowed_user}."
+                f"{name}: GRANT SELECT on backup table '{table_name.upper()}' is valid."
             ))
         
         return msgs

@@ -71,19 +71,15 @@ class GrantPrivilegeRule(RuleBase):
             restricted_privs = [p for p in privileges if p not in allowed_for_all]
             
             if restricted_privs:
-                restricted_list = ', '.join(restricted_privs)
                 msgs.append(self.fail(
-                    f"{name}: User '{grantee}' can only be granted SELECT. "
-                    f"Found: {restricted_list}. Only {privileged_user} can have additional privileges."
+                    f"{name}: Granting additional privileges beyond SELECT is restricted to authorized users only."
                 ))
                 return msgs
 
         # All good
         if privileges:
-            priv_list = ', '.join(privileges)
-            user_list = ', '.join(grantees)
             msgs.append(self.ok(
-                f"{name}: GRANT {priv_list} on '{obj_name}' to '{user_list}' is valid."
+                f"{name}: Grant of privileges on '{obj_name}' is valid."
             ))
         
         return msgs

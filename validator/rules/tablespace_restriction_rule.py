@@ -19,15 +19,8 @@ class TablespaceRestrictionRule(RuleBase):
         if match:
             ts_name = match.group(1).upper()
             if ts_name in [f.upper() for f in forbidden]:
-                msgs.append(self.fail(f"{name}: Object cannot be created in forbidden tablespace '{ts_name}'."))
+                msgs.append(self.fail(f"{name}: Object cannot be created in the specified tablespace. This tablespace is restricted."))
             else:
-                # Optionally pass? or just silent?
-                # Usually purely negative checks warn on fail, silent on pass. 
-                # But to show it was checked:
-                pass
-                # msgs.append(self.ok(f"{name}: Tablespace '{ts_name}' is allowed.")) 
-                # ^ explicit ok might clutter report if every table has it. 
-                # But consistency suggests showing 'ok' if we found a tablespace and checked it.
-                msgs.append(self.ok(f"{name}: Tablespace '{ts_name}' is allowed."))
+                msgs.append(self.ok(f"{name}: Tablespace usage is valid."))
         
         return msgs

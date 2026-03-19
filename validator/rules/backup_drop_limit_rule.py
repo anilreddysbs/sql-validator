@@ -57,17 +57,12 @@ class BackupDropLimitRule(RuleBase):
 
         # Check against limit
         if drop_count > max_drops:
-            tables_preview = ', '.join(dropped_tables)
-            if drop_count > 5:
-                tables_preview += '...'
-            
             msgs.append(self.fail(
-                f"{name}: Found {drop_count} DROP TABLE statements for _TBD backup tables. "
-                f"Maximum allowed is {max_drops}. Tables: {tables_preview}"
+                f"{name}: Maximum number of backup table drops exceeded. Please split your script or contact your administrator."
             ))
         elif drop_count > 0:
             msgs.append(self.ok(
-                f"{name}: {drop_count} DROP TABLE statements for _TBD backup tables (limit: {max_drops})."
+                f"{name}: Backup table drop count is within allowed limits."
             ))
         
         return msgs
