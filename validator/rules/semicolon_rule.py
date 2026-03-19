@@ -12,17 +12,9 @@ class SemicolonRule(RuleBase):
         s = statements[idx].strip()
 
         # skip slash
-        if s == "/":
-            msgs.append(f"✅ {name}: Slash is allowed here.")
-            return msgs
-
-        if re.match(r"^(declare|begin)", s, re.IGNORECASE):
-            msgs.append(f"✅ {name}: PL/SQL semicolons handled by PL/SQL rule.")
-            return msgs
-
         if s.endswith(";") or s.endswith("/"):
-            msgs.append(f"✅ {name}: Statement ends with proper terminator (; or /).")
+            msgs.append(f"✅ {name}: Statement ends with semicolon.")
         else:
-            msgs.append(f"❌ {name}: Statement missing proper terminator (; or /).")
+            msgs.append(f"❌ {name}: Statement missing semicolon.")
 
         return msgs

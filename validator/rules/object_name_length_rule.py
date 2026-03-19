@@ -31,8 +31,8 @@ class ObjectNameLengthRule(RuleBase):
         obj = m.group(3)
 
         if len(obj) > max_len:
-            msgs.append(f"❌ {name}: '{obj}' exceeds {max_len} chars.")
+            msgs.append(f"❌ {name}: '{obj}' exceeds allowed length.")
         else:
-            msgs.append(f"✅ {name}: '{obj}' length OK ({len(obj)}).")
+            msgs.append(f"✅ {name}: '{obj}' length is valid.")
 
         return msgs
