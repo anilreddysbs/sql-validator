@@ -1,4 +1,5 @@
 import os
+import html
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer,
@@ -88,11 +89,11 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
     # META BLOCK
     # -------------------------
     meta_text = f"""
-    <b>Name:</b> {run_meta.get('name', '-')}<br/>
-    <b>Email:</b> {run_meta.get('email', '-')}<br/>
-    <b>Team:</b> {run_meta.get('team', '-')}<br/>
-    <b>CR Number:</b> {run_meta.get('cr_number', '-')}<br/>
-    <b>Generated At:</b> {run_meta.get('generated_at', '')}
+    <b>Name:</b> {html.escape(run_meta.get('name', '-'))}<br/>
+    <b>Email:</b> {html.escape(run_meta.get('email', '-'))}<br/>
+    <b>Team:</b> {html.escape(run_meta.get('team', '-'))}<br/>
+    <b>CR Number:</b> {html.escape(run_meta.get('cr_number', '-'))}<br/>
+    <b>Generated At:</b> {html.escape(run_meta.get('generated_at', ''))}
     """
     flow.append(Paragraph(meta_text, header_style))
     flow.append(Spacer(1, 10))
@@ -136,8 +137,9 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
             else:
                 color = "green"
 
+            safe_msg = html.escape(msg)
             flow.append(
-                Paragraph(f"<font color='{color}'>{msg}</font>", normal_style)
+                Paragraph(f"<font color='{color}'>{safe_msg}</font>", normal_style)
             )
 
 

@@ -130,8 +130,15 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
 
         // Enable PDF download button
         if (data.pdf_url) {
+            console.log("PDF URL received:", data.pdf_url);
             topDownloadBtn.style.display = "inline-block";
-            topDownloadBtn.onclick = () => window.open(data.pdf_url, "_blank");
+            topDownloadBtn.onclick = () => {
+                console.log("Downloading PDF:", data.pdf_url);
+                window.open(data.pdf_url, "_blank");
+            };
+        } else if (data.pdf_error) {
+            console.error("PDF generation error:", data.pdf_error);
+            output.innerHTML += `<p class="error">⚠️ Results validated, but PDF generation failed: ${data.pdf_error}</p>`;
         }
 
     } catch (err) {

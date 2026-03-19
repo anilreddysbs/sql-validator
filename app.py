@@ -24,6 +24,15 @@ def allowed_file(filename):
     ext = os.path.splitext(filename)[1].lower()
     return ext in ALLOWED_EXT
 
+def sanitize_filename(name):
+    """Sanitize string for safe filename usage."""
+    import re
+    # Replace non-alphanumeric (except . and _) with underscores
+    s = re.sub(r'[^a-zA-Z0-9._-]', '_', name)
+    # Avoid double underscores
+    s = re.sub(r'_+', '_', s)
+    return s.strip('_')
+
 @app.route('/validate', methods=['POST'])
 def validate_route():
     # 🔥 WAF BYPASS: Decode Base64 content
@@ -67,7 +76,8 @@ def validate_route():
     # <CR>_<YYYYMMDD>_<HHMMSS>.pdf
     # -----------------------------
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_filename = f"{cr_number}_{timestamp}.pdf"
+    clean_cr = sanitize_filename(cr_number) if cr_number else "REPORT"
+    out_filename = f"{clean_cr}_{timestamp}.pdf"
     out_path = os.path.join(OUTPUT_FOLDER, out_filename)
 
     # metadata for PDF header
@@ -80,7 +90,17 @@ def validate_route():
     }
 
     # generate PDF
-    generate_pdf(run_meta, results, summary, out_path)
+    try:
+        generate_pdf(run_meta, results, summary, out_path)
+    except Exception as e:
+        print(f"ERROR: PDF generation failed: {str(e)}")
+        # We still return results, but without pdf_url
+        return jsonify({
+            "results": results,
+            "summary": summary,
+            "pdf_url": None,
+            "pdf_error": str(e)
+        })
 
     # return downloadable URL
     pdf_url = url_for('download_file', filename=out_filename)
