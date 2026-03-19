@@ -35,8 +35,11 @@ class BackupDropSeparationRule(RuleBase):
             s_clean = stmt.strip().upper()
             if not s_clean or s_clean.startswith("--") or s_clean == "/":
                 return True
-            # Strip semicolon for the suffix check
-            s_clean = s_clean.rstrip(';').strip()
+            
+            # Robustly strip whitespace, semicolons and slashes from the end
+            # Using re.sub to handle any combination at the end
+            s_clean = re.sub(r'[;/\s]+$', '', s_clean)
+            
             if s_clean.startswith("DROP TABLE") and s_clean.endswith("_TBD"):
                 return True
             return False
@@ -44,7 +47,8 @@ class BackupDropSeparationRule(RuleBase):
         current_is_valid = is_valid_in_backup_script(statements[idx])
         
         has_any_backup_drop = any(
-            s.strip().upper().startswith("DROP TABLE") and s.strip().upper().rstrip(';').strip().endswith("_TBD")
+            re.sub(r'[;/\s]+$', '', s.strip().upper()).startswith("DROP TABLE") and 
+            re.sub(r'[;/\s]+$', '', s.strip().upper()).endswith("_TBD")
             for s in statements if s and not s.strip().startswith("--")
         )
         

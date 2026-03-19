@@ -20,9 +20,9 @@ class SemicolonRule(RuleBase):
             msgs.append(f"✅ {name}: PL/SQL semicolons handled by PL/SQL rule.")
             return msgs
 
-        if s.endswith(";"):
-            msgs.append(f"✅ {name}: Statement ends with semicolon.")
+        if s.endswith(";") or s.endswith("/"):
+            msgs.append(f"✅ {name}: Statement ends with proper terminator (; or /).")
         else:
-            msgs.append(f"❌ {name}: Statement missing semicolon.")
+            msgs.append(f"❌ {name}: Statement missing proper terminator (; or /).")
 
         return msgs
