@@ -1,7 +1,38 @@
 {
   "global_config": {
-    "loader_aliases": [],
-    "owner_aliases": []
+    "loader_aliases": [
+      "RDEP_ACTMZ_SCB541",
+      "RDEP_ACTMZ",
+      "RDEP_FRAUD",
+      "RDEP_HYS_USER",
+      "RDEP_SCB541",
+      "RDEP_STG_FSRV",
+      "RDEP_STG_FSRV_SCB541",
+      "RDEP_STG_HYS",
+      "RDEP_STG_OUTBOUND",
+      "RFS",
+      "ROLLUP",
+      "FSI_SEC",
+      "BLK1",
+      "TEM2",
+      "WFH2",
+      "PHP2",
+      "RAP1",
+      "MERT",
+      "IVR",
+      "SIP1",
+      "TEM1",
+      "DAY1",
+      "WFH1",
+      "ECHAT",
+      "HYD1",
+      "ORL1",
+      "CMS",
+      "CNT1",
+      "EDL",
+      "CCPA_SEC",
+      "MWCT_TEMP"
+    ]
   },
   "dml_commit": {
     "enabled": true,

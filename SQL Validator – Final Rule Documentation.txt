@@ -21,7 +21,6 @@ Define exception keywords for "LOADER" and "OWNER" concepts to handle environmen
 
 🔍 Configuration Keys
 - loader_aliases: List of user names treated as LOADER (privileged).
-- owner_aliases: List of schemas treated as valid owners (exception to single-schema rule).
 
 1️⃣ DML Commit Rule
 
@@ -173,7 +172,6 @@ Unified rule to enforce schema usage.
 1. Prefix: DDL & DML (INSERT, UPDATE, DELETE) must have schema prefix (e.g., schema.table).
 2. Consistency: All statements in a file must belong to the same schema.
 3. No Quotes: Schema/Object names must not be quoted.
-4. Owner Aliases: Additional schemas listed in `owner_aliases` (Global Config) are allowed in the same file.
 
 ✔ PASS
 CREATE TABLE hr.emp (id NUMBER);
