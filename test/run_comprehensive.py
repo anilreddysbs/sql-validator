@@ -33,3 +33,4 @@ if __name__ == "__main__":
     with open("test/full_rule_test_output.txt", "w", encoding="utf-8") as outf:
         run_test("test/comprehensive_test_cases.txt", outf)
         run_test("test/pure_backup_drop.txt", outf)
+        run_test("test/alias_verification.txt", outf)

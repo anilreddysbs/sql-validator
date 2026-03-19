@@ -1,0 +1,28 @@
+-- Test suite for verifying loader aliases privileges
+
+-- 1. First alias in list (PASS)
+GRANT UPDATE ON hr.employees TO RDEP_ACTMZ_SCB541;
+
+-- 2. Middle aliases (PASS)
+GRANT DELETE ON hr.employees TO RDEP_FRAUD;
+GRANT INSERT ON hr.employees TO BLK1;
+GRANT UPDATE ON hr.employees TO RAP1;
+GRANT DELETE ON hr.employees TO CMS;
+
+-- 3. Last alias in list (PASS)
+GRANT INSERT ON hr.employees TO MWCT_TEMP;
+
+-- 4. Standard LOADER user (PASS)
+GRANT UPDATE ON hr.employees TO LOADER;
+
+-- 5. Non-privileged user - UPDATE (FAIL)
+GRANT UPDATE ON hr.employees TO REGULAR_USER;
+
+-- 6. Non-privileged user - SELECT (PASS)
+GRANT SELECT ON hr.employees TO REGULAR_USER;
+
+-- 7. Backup table grant for alias (PASS)
+GRANT SELECT ON hr.data_bkp_tbd TO CMS;
+
+-- 8. Backup table grant for regular user (FAIL)
+GRANT SELECT ON hr.data_bkp_tbd TO REGULAR_USER;
