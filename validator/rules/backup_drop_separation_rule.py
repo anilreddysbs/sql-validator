@@ -30,13 +30,13 @@ class BackupDropSeparationRule(RuleBase):
         
         # Helper to identify if a statement is a backup drop
         def is_backup_drop(stmt):
-            s_clean = stmt.strip().upper()
-            # Must start with DROP TABLE
-            if not s_clean.startswith("DROP TABLE"):
-                return False
-            # Must end with _TBD (before potential semicolon)
-            # Remove trailing semicolon for check
-            # handle potential whitespace before semicolon
+            if not stmt: return False
+            s_clean = stmt.strip().rstrip(';').strip().upper()
+            # Must start with DROP TABLE and end with _TBD
+            if s_clean.startswith("DROP TABLE") and s_clean.endswith("_TBD"):
+                return True
+            return False
+            
         current_is_backup = is_backup_drop(statements[idx])
         
         has_any_backup_drop = any(is_backup_drop(s) for s in statements if s)
