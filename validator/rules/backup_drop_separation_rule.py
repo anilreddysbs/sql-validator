@@ -29,42 +29,47 @@ class BackupDropSeparationRule(RuleBase):
         name = self.params.get("rule_name", "Backup Drop Separation")
         
         # Helper to identify if a statement is a backup drop
-        def is_backup_drop(stmt):
-            if not stmt: return False
-            s_clean = stmt.strip().rstrip(';').strip().upper()
-            # Must start with DROP TABLE and end with _TBD
+        # Helper to identify if a statement is a backup drop or should be ignored (comments/empty)
+        def is_valid_in_backup_script(stmt):
+            if not stmt: return True
+            s_clean = stmt.strip().upper()
+            if not s_clean or s_clean.startswith("--") or s_clean == "/":
+                return True
+            # Strip semicolon for the suffix check
+            s_clean = s_clean.rstrip(';').strip()
             if s_clean.startswith("DROP TABLE") and s_clean.endswith("_TBD"):
                 return True
             return False
             
-        current_is_backup = is_backup_drop(statements[idx])
+        current_is_valid = is_valid_in_backup_script(statements[idx])
         
-        has_any_backup_drop = any(is_backup_drop(s) for s in statements if s)
+        has_any_backup_drop = any(
+            s.strip().upper().startswith("DROP TABLE") and s.strip().upper().rstrip(';').strip().endswith("_TBD")
+            for s in statements if s and not s.strip().startswith("--")
+        )
         
         if not has_any_backup_drop:
             # No backup drops in file, so no separation issue regarding this rule
             return msgs
 
-        # If we have backup drops, ALL statements must be backup drops
-        # (or maybe we allow COMMIT? The user said "separate script", implying pure containment)
-        # Let's assume STRICT isolation based on "dont include it in same script".
-        
-        if not current_is_backup:
-            # This statement is NOT a backup drop, but the file HAS backup drops.
-            # This is a violation.
-            msgs.append(f"FAIL {name}: Found mixed content. File contains DROP TABLE ... _TBD statements, "
-                f"so it must NOT contain other statements like this one.")
+        if not current_is_valid:
+            # This statement is NOT a backup drop/comment, but the file HAS backup drops.
+            if idx == 0:
+                msgs.append(f"FAIL {name}: Found mixed content. File contains DROP TABLE ... _TBD statements, "
+                    f"so it must NOT contain other statements. Backup drop scripts must be isolated.")
         else:
-            # This statement IS a backup drop.
-            # We need to check if there are non-backup drops to flag the file context.
-            # If the file is mixed, we can flag this too, or just flag the "polluting" statements.
-            # Let's flag everything to be safe and visible.
-            has_non_backup = any(not is_backup_drop(s) for s in statements if s)
+            # Current is valid (drop or comment). Check if file has "bad" statements.
+            has_invalid = any(not is_valid_in_backup_script(s) for s in statements if s)
             
-            if has_non_backup:
-                msgs.append(f"FAIL {name}: File contains non-backup-drop statements. "
-                    f"Backup DROP scripts must be isolated.")
+            if has_invalid:
+                if idx == 0:
+                    msgs.append(f"FAIL {name}: File contains non-backup-drop statements. "
+                        f"Backup DROP scripts must be isolated.")
             else:
-                msgs.append(f"PASS {name}: Backup drop statement is correctly isolated.")
+                # Isolated file. 
+                # If current is an actual drop (not just a comment), we can say PASS.
+                s_up = statements[idx].strip().upper()
+                if s_up.startswith("DROP TABLE"):
+                     msgs.append(f"PASS {name}: Backup drop statement is correctly isolated.")
                 
         return msgs

@@ -106,12 +106,13 @@ class BackupTableRule(RuleBase):
             if "CREATE TABLE" in s.upper():
                 msgs.append(self.fail(f"{name}: Backup table '{table_upper}' missing explicit TABLESPACE clause."))
 
-        # Lifecycle warning
-        msgs.append(
-            self.warn(
-                f"Backup table '{table_upper}' should be dropped in the next CR "
-                f"or after its intended usage is completed."
+        # Lifecycle warning (skip if already being dropped)
+        if not s.upper().startswith("DROP"):
+            msgs.append(
+                self.warn(
+                    f"Backup table '{table_upper}' should be dropped in the next CR "
+                    f"or after its intended usage is completed."
+                )
             )
-        )
 
         return msgs
