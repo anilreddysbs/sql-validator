@@ -30,5 +30,5 @@ def run_test(file_path):
         print("-" * 40)
 
 if __name__ == "__main__":
-    run_test("test/comprehensive_test_cases.sql")
-    run_test("test/pure_backup_drop.sql")
+    run_test("test/comprehensive_test_cases.txt")
+    run_test("test/pure_backup_drop.txt")
