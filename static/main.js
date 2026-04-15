@@ -104,7 +104,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
 
         if (data.summary.global_validations && data.summary.global_validations.length) {
             output.innerHTML += `
-              <h3>File-Level Validations:</h3>
+              <h3>File-Level Rules:</h3>
               <ul style="margin-top: 10px; padding-left: 20px;">
                 ${data.summary.global_validations.map(msg => (
                     `<li class="${validationClass(msg)}">${msg}</li>`

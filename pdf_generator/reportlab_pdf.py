@@ -102,7 +102,7 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
     warnings = summary.get("warnings", [])
 
     if global_validations:
-        flow.append(Paragraph("File-Level Validations", section_title_style))
+        flow.append(Paragraph("File-Level Rules", section_title_style))
         for msg in global_validations:
             flow.append(
                 Paragraph(
