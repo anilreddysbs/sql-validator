@@ -5,6 +5,7 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 .env
 .vscode/
 .scripts/
@@ -18,6 +19,7 @@ output/
 debug_report.txt
 full_test_report.txt
 debug_output.txt
+*.log
 
 # OS Files
 .DS_Store
