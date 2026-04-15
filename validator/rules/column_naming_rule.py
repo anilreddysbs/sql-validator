@@ -54,8 +54,31 @@ class ColumnNamingRule(RuleBase):
                 columns_to_check.append(first_token)
 
         # 2. ALTER TABLE ... ADD/MODIFY
-        # Simple extraction: look for ADD (col type) or ADD col type
-        # For now, let's focus on the CREATE TABLE structure as per the user's example
+        alter_match = re.search(
+            r'ALTER\s+TABLE\s+(?:[A-Za-z0-9_]+\.)?[A-Za-z0-9_]+\s+(ADD|MODIFY)\s*(\(?.*\)?)\s*;?$',
+            s,
+            re.IGNORECASE | re.DOTALL
+        )
+        if alter_match:
+            action_content = alter_match.group(2).strip().rstrip(";").strip()
+            if action_content.startswith("(") and action_content.endswith(")"):
+                action_content = action_content[1:-1]
+
+            definitions = self._split_by_comma_ignoring_parens(action_content)
+            for definition in definitions:
+                def_clean = definition.strip()
+                if not def_clean:
+                    continue
+
+                tokens = def_clean.split()
+                if not tokens:
+                    continue
+
+                first_token = tokens[0]
+                if first_token.upper() in ("CONSTRAINT", "PRIMARY", "FOREIGN", "CHECK", "UNIQUE"):
+                    continue
+
+                columns_to_check.append(first_token)
         
         return columns_to_check
 
@@ -138,8 +161,7 @@ class ColumnNamingRule(RuleBase):
         name = self.params.get("rule_name", "Column Naming Convention")
         s = statements[idx].strip()
         
-        # Only check CREATE TABLE statements for now
-        if not s.upper().startswith("CREATE TABLE"):
+        if not (s.upper().startswith("CREATE TABLE") or s.upper().startswith("ALTER TABLE")):
             return msgs
             
         columns = self._extract_columns(s)

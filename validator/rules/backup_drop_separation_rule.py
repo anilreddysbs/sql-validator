@@ -59,21 +59,25 @@ class BackupDropSeparationRule(RuleBase):
         if not current_is_valid:
             # This statement is NOT a backup drop/comment, but the file HAS backup drops.
             if idx == 0:
-                msgs.append(f"FAIL {name}: Found mixed content. File contains DROP TABLE ... _TBD statements, "
-                    f"so it must NOT contain other statements. Backup drop scripts must be isolated.")
+                msgs.append(self.fail(
+                    f"{name}: Found mixed content. File contains DROP TABLE ... _TBD statements, "
+                    f"so it must NOT contain other statements. Backup drop scripts must be isolated."
+                ))
         else:
             # Current is valid (drop or comment). Check if file has "bad" statements.
             has_invalid = any(not is_valid_in_backup_script(s) for s in statements if s)
             
             if has_invalid:
                 if idx == 0:
-                    msgs.append(f"FAIL {name}: File contains non-backup-drop statements. "
-                        f"Backup DROP scripts must be isolated.")
+                    msgs.append(self.fail(
+                        f"{name}: File contains non-backup-drop statements. "
+                        f"Backup DROP scripts must be isolated."
+                    ))
             else:
                 # Isolated file. 
                 # If current is an actual drop (not just a comment), we can say PASS.
                 s_up = statements[idx].strip().upper()
                 if s_up.startswith("DROP TABLE"):
-                     msgs.append(f"PASS {name}: Backup drop statement is correctly isolated.")
+                     msgs.append(self.ok(f"{name}: Backup drop statement is correctly isolated."))
                 
         return msgs

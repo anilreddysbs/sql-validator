@@ -16,6 +16,11 @@ import re
 class BackupTableRule(RuleBase):
     id = "backup_table_suffix"
 
+    TARGET_STATEMENT_RE = re.compile(
+        r'^\s*(create\s+table|drop\s+table|truncate\s+table|insert\s+into)\b',
+        re.IGNORECASE
+    )
+
     def _extract_table_name(self, statement):
         """Extract table name from statement, handling schema.table patterns."""
         s = statement.strip()
@@ -69,6 +74,9 @@ class BackupTableRule(RuleBase):
         required = self.params.get("required_ending", "TBD")
 
         s = statements[idx].strip()
+
+        if not self.TARGET_STATEMENT_RE.match(s):
+            return msgs
 
         # Extract table name
         table_name = self._extract_table_name(s)
