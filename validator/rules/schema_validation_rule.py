@@ -7,8 +7,9 @@ Rules:
 1. Schema Prefix: Check that target statements (DDL & DML) explicitly use a schema prefix (e.g., schema.table).
    - Fails if prefix is missing.
    - Fails if quoted identifiers are used (not allowed).
-2. Single Schema: Check that all statements in the file refer to the SAME schema.
+2. Single Schema: Check that all relevant statements in the file refer to the SAME schema.
    - Ignores statements that don't have a schema/object reference.
+   - Ignores CREATE SYNONYM because synonyms are aliases and may point across schemas.
    - Fails if multiple different schemas are detected.
 """
 from .rule_base import RuleBase
@@ -55,20 +56,17 @@ class SchemaValidationRule(RuleBase):
 
         type_label = None
         obj_ref = None
+        metadata = {"skip_schema_checks": False, "skip_consistency": False}
         
         # Check SYNONYM first (special case)
         if 'CREATE SYNONYM' in s_upper or 'CREATE OR REPLACE SYNONYM' in s_upper:
             # Pattern: CREATE SYNONYM [schema.]syn_name FOR [schema.]target
             syn_match = re.search(r'\bSYNONYM\s+([A-Za-z0-9_"\']+(?:\.[A-Za-z0-9_"\']+)?)\s+FOR\s+([A-Za-z0-9_"\']+(?:\.[A-Za-z0-9_"\']+)?)\b', s, re.IGNORECASE)
             if syn_match:
-                # We usually care about the TARGET for schema consistency? 
-                # Or the synonym itself? Usually synonym creation is: CREATE SYNONYM schema.name FOR schema.table
-                # Let's return the target 'FOR' object as the primary object to validate for prefixes?
-                # Actually, the user likely wants the created object to have a prefix too.
-                # Let's stick to the target table for consistency if possible, or just the synonym name.
-                # Simplest consistency check: The SYNONYM name itself.
                 obj_ref = syn_match.group(1)
                 type_label = 'CREATE SYNONYM'
+                metadata["skip_schema_checks"] = True
+                metadata["skip_consistency"] = True
 
         if not type_label:
             for pattern, label, extraction_regex in self.PATTERNS:
@@ -82,9 +80,9 @@ class SchemaValidationRule(RuleBase):
         if type_label and obj_ref:
             has_quotes = '"' in obj_ref or "'" in obj_ref
             has_schema = '.' in obj_ref
-            return type_label, obj_ref, has_schema, has_quotes
+            return type_label, obj_ref, has_schema, has_quotes, metadata
         
-        return None, None, None, None
+        return None, None, None, None, metadata
 
     def apply(self, statements, idx, context):
         msgs = []
@@ -92,9 +90,9 @@ class SchemaValidationRule(RuleBase):
         
         # 1. Prefix Check (Per-Statement)
         current_stmt = statements[idx]
-        lbl, obj, has_schema, has_quotes = self._get_statement_info(current_stmt)
+        lbl, obj, has_schema, has_quotes, metadata = self._get_statement_info(current_stmt)
 
-        if lbl:
+        if lbl and not metadata.get("skip_schema_checks"):
             # Check for quotes
             if has_quotes:
                  msgs.append(self.fail(f"{name}: {lbl} statement contains quoted identifiers - not allowed."))
@@ -113,7 +111,10 @@ class SchemaValidationRule(RuleBase):
             schema_stmt_map = {}
 
             for i, stmt in enumerate(statements):
-                _lbl, _obj, _has_schema, _has_quotes = self._get_statement_info(stmt)
+                _lbl, _obj, _has_schema, _has_quotes, _meta = self._get_statement_info(stmt)
+                if _meta.get("skip_consistency"):
+                    continue
+
                 if _lbl and _has_schema and _obj and not _has_quotes:
                     # Extract schema part
                     # object is "schema.table" -> split by dot, take first part
@@ -137,13 +138,14 @@ class SchemaValidationRule(RuleBase):
                      if count > 3: lines += "..."
                      details.append(f"{sc} (lines {lines})")
                 
-                msgs.append(self.fail(
-                    f"{name}: Multiple schemas detected in file: {', '.join(details)}. File must be single-schema."
-                ))
+                context.setdefault("global_validations", []).append(
+                    self.fail(
+                        f"{name}: Multiple schemas detected in file: {', '.join(details)}. File must be single-schema."
+                    )
+                )
             elif len(found_schemas) == 1:
-                # Optionally report success for single schema? 
-                # RuleBase usually reports success only if specifically checked.
-                # "Validation passed" is implied if no fail, but we can add a debug/info note if needed.
-                msgs.append(self.ok(f"{name}: Consistent schema usage detected ('{list(found_schemas)[0]}')."))
+                context.setdefault("global_validations", []).append(
+                    self.ok(f"{name}: Consistent schema usage detected ('{list(found_schemas)[0]}').")
+                )
 
         return msgs

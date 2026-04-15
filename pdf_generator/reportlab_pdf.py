@@ -16,26 +16,24 @@ DEFAULT_FONT_PATH = "fonts/DejaVuSans.ttf"
 def register_fonts():
     try:
         if os.path.exists(DEFAULT_FONT_PATH):
-            pdfmetrics.registerFont(TTFont('DejaVuSans', DEFAULT_FONT_PATH))
+            pdfmetrics.registerFont(TTFont("DejaVuSans", DEFAULT_FONT_PATH))
     except Exception:
         pass
 
 
 def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
-
     register_fonts()
     styles = getSampleStyleSheet()
 
-    # Use DejaVu if installed
     base_font = (
-        'DejaVuSans'
-        if 'DejaVuSans' in pdfmetrics.getRegisteredFontNames()
-        else 'Helvetica'
+        "DejaVuSans"
+        if "DejaVuSans" in pdfmetrics.getRegisteredFontNames()
+        else "Helvetica"
     )
 
     title_style = ParagraphStyle(
         "Title",
-        parent=styles['Heading1'],
+        parent=styles["Heading1"],
         fontName=base_font,
         fontSize=18,
         spaceAfter=10,
@@ -44,7 +42,7 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
 
     header_style = ParagraphStyle(
         "Header",
-        parent=styles['Normal'],
+        parent=styles["Normal"],
         fontName=base_font,
         fontSize=11,
         leading=14,
@@ -52,7 +50,7 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
 
     section_title_style = ParagraphStyle(
         "SectionTitle",
-        parent=styles['Heading3'],
+        parent=styles["Heading3"],
         fontName=base_font,
         fontSize=13,
         spaceBefore=8,
@@ -62,7 +60,7 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
 
     normal_style = ParagraphStyle(
         "NormalFixed",
-        parent=styles['Normal'],
+        parent=styles["Normal"],
         fontName=base_font,
         fontSize=10,
         leading=14,
@@ -79,15 +77,9 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
 
     flow = []
 
-    # -------------------------
-    # TITLE
-    # -------------------------
     flow.append(Paragraph("SQL Validation Report", title_style))
     flow.append(Spacer(1, 6))
 
-    # -------------------------
-    # META BLOCK
-    # -------------------------
     meta_text = f"""
     <b>Name:</b> {html.escape(run_meta.get('name', '-'))}<br/>
     <b>Email:</b> {html.escape(run_meta.get('email', '-'))}<br/>
@@ -98,50 +90,58 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
     flow.append(Paragraph(meta_text, header_style))
     flow.append(Spacer(1, 10))
 
-    # -------------------------
-    # SUMMARY
-    # -------------------------
     summary_text = (
-        f"<b>Total Queries:</b> {summary.get('total',0)} &nbsp;&nbsp; "
-        f"<b>Passed:</b> <font color='green'>{summary.get('passed',0)}</font> &nbsp;&nbsp; "
-        f"<b>Failed:</b> <font color='red'>{summary.get('failed',0)}</font>"
+        f"<b>Total Queries:</b> {summary.get('total', 0)} &nbsp;&nbsp; "
+        f"<b>Passed:</b> <font color='green'>{summary.get('passed', 0)}</font> &nbsp;&nbsp; "
+        f"<b>Failed:</b> <font color='red'>{summary.get('failed', 0)}</font>"
     )
     flow.append(Paragraph(summary_text, header_style))
     flow.append(Spacer(1, 14))
 
+    global_validations = summary.get("global_validations", [])
+    warnings = summary.get("warnings", [])
+
+    if global_validations:
+        flow.append(Paragraph("File-Level Validations", section_title_style))
+        for msg in global_validations:
+            flow.append(
+                Paragraph(
+                    f"<font color='{_message_color(msg)}'>{html.escape(msg)}</font>",
+                    normal_style
+                )
+            )
+        flow.append(Spacer(1, 10))
+
+    if warnings:
+        flow.append(Paragraph("Warnings", section_title_style))
+        for item in warnings:
+            warning_text = f"Query {item.get('query_index')}: {item.get('message', '')}"
+            flow.append(
+                Paragraph(
+                    f"<font color='{_message_color(item.get('message', ''))}'>{html.escape(warning_text)}</font>",
+                    normal_style
+                )
+            )
+        flow.append(Spacer(1, 10))
+
     flow.append(HRFlowable(width="100%", thickness=1, color="#cccccc"))
     flow.append(Spacer(1, 10))
 
-    # -------------------------
-    # EACH QUERY
-    # -------------------------
     for idx, item in enumerate(results, start=1):
-
         flow.append(Paragraph(f"Query #{idx}", section_title_style))
 
-        # SQL block
-        sql_text = item.get("query", "")
-        sql_text = _insert_soft_breaks(sql_text, 200)
-
+        sql_text = _insert_soft_breaks(item.get("query", ""), 200)
         flow.append(Preformatted(sql_text, normal_style))
         flow.append(Spacer(1, 4))
 
-        # Validation messages
         for msg in item.get("validations", []):
-            clean = msg.lstrip()   # <-- THIS FIXES IT
-
-            if clean.startswith("❌"):
-                color = "red"
-            elif clean.startswith("⚠️"):
-                color = "#FFA500"  # orange / yellow
-            else:
-                color = "green"
-
             safe_msg = html.escape(msg)
             flow.append(
-                Paragraph(f"<font color='{color}'>{safe_msg}</font>", normal_style)
+                Paragraph(
+                    f"<font color='{_message_color(msg)}'>{safe_msg}</font>",
+                    normal_style
+                )
             )
-
 
         flow.append(Spacer(1, 10))
         flow.append(HRFlowable(width="100%", thickness=0.8, color="#e0e0e0"))
@@ -152,14 +152,22 @@ def generate_pdf(run_meta: dict, results: list, summary: dict, out_path: str):
 
 
 def _insert_soft_breaks(text, max_len):
-    """Prevents long lines from breaking the entire PDF layout."""
     import re
 
-    def repl(m):
-        s = m.group(0)
-        if len(s) > max_len:
-            parts = [s[i:i + max_len] for i in range(0, len(s), max_len)]
-            return "\u200b".join(parts)
-        return s
+    def repl(match):
+        segment = match.group(0)
+        if len(segment) <= max_len:
+            return segment
+        parts = [segment[i:i + max_len] for i in range(0, len(segment), max_len)]
+        return "\u200b".join(parts)
 
-    return re.sub(r'\S{' + str(max_len + 1) + r',}', repl, text)
+    return re.sub(r"\S{" + str(max_len + 1) + r",}", repl, text)
+
+
+def _message_color(message):
+    clean = (message or "").lstrip()
+    if clean.startswith("FAIL") or clean.startswith("❌") or clean.startswith("âŒ"):
+        return "red"
+    if clean.startswith("⚠️") or clean.startswith("âš ï¸"):
+        return "#FFA500"
+    return "green"

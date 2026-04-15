@@ -18,6 +18,10 @@ NEW_STMT_KEYWORD_RE = re.compile(
 )
 
 _SLASH_RE = re.compile(r'^\s*/\s*$', re.IGNORECASE)
+SQL_START_LINE_RE = re.compile(
+    r'^\s*(with|select|insert|update|delete|merge|create|alter|drop|truncate|grant|revoke|begin|declare|comment|rename|commit)\b',
+    re.IGNORECASE
+)
 
 
 # -------------------------
@@ -297,6 +301,28 @@ def _attach_trailing_slashes(chunks):
     return final
 
 
+def _trim_to_sql_start(chunk: str) -> str:
+    """
+    Drop free-form reference text before the first SQL-looking line.
+    This lets users keep notes above a query without that text
+    being treated as a standalone statement.
+    """
+    if not chunk:
+        return chunk
+
+    lines = chunk.splitlines()
+    for idx, line in enumerate(lines):
+        if SQL_START_LINE_RE.match(line):
+            return "\n".join(lines[idx:]).strip()
+    return chunk.strip()
+
+
+def _looks_like_sql_statement(chunk: str) -> bool:
+    if not chunk:
+        return False
+    return bool(SQL_START_LINE_RE.match(chunk))
+
+
 # -------------------------
 # Public API
 # -------------------------
@@ -323,7 +349,11 @@ def split_sql_queries(text: str):
     # 5) Final attach: ensure any leftover '/' is merged with preceding END;
     tokens = _attach_trailing_slashes(tokens)
 
-    # cleanup and strip each token
-    tokens = [t.strip() for t in tokens if t and t.strip()]
+    cleaned_tokens = []
+    for token in tokens:
+        trimmed = _trim_to_sql_start(token)
+        if not _looks_like_sql_statement(trimmed):
+            continue
+        cleaned_tokens.append(trimmed)
 
-    return tokens
+    return cleaned_tokens

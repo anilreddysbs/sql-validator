@@ -1,9 +1,19 @@
 let lastFingerprint = null;
 
-// Clear warning when user changes any input
+function validationClass(message) {
+    if (message.startsWith("FAIL") || message.startsWith("❌") || message.startsWith("âŒ")) {
+        return "error";
+    }
+    if (message.startsWith("⚠️") || message.startsWith("âš ï¸")) {
+        return "warning";
+    }
+    return "success";
+}
+
 document.getElementById("uploadForm").addEventListener("input", function () {
     document.getElementById("duplicateWarning").style.display = "none";
 });
+
 document.getElementById("uploadForm").addEventListener("change", function () {
     document.getElementById("duplicateWarning").style.display = "none";
 });
@@ -14,7 +24,6 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
     const fileInput = document.getElementById("sqlFile");
     const file = fileInput.files[0];
 
-    // Create a fingerprint of the current form state
     const currentFingerprint = [
         document.getElementById("name").value,
         document.getElementById("email").value,
@@ -26,20 +35,17 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
     ].join("|");
 
     const warningDiv = document.getElementById("duplicateWarning");
-
-    // Clear previous warning
     warningDiv.style.display = "none";
     warningDiv.innerText = "";
 
     if (currentFingerprint === lastFingerprint) {
-        warningDiv.innerText = "⚠️ You have already validated this file with these specific details. Please upload a new file or modify the details to validate again.";
+        warningDiv.innerText = "You have already validated this file with these details. Upload a new file or change the details to validate again.";
         warningDiv.style.display = "block";
         return;
     }
 
     const formData = new FormData(this);
 
-    // 🔥 WAF BYPASS: Encode SQL content to Base64
     if (file) {
         try {
             const base64Content = await new Promise((resolve, reject) => {
@@ -56,24 +62,21 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
                 reader.readAsArrayBuffer(file);
             });
             formData.append("sql_content_b64", base64Content);
-            // Remove the actual file to avoid WAF detection
             formData.delete("sqlFile");
         } catch (err) {
             console.error("Base64 encoding failed:", err);
         }
     }
 
-
     const resultDiv = document.getElementById("results");
     const output = document.getElementById("validationOutput");
     const topDownloadBtn = document.getElementById("topDownloadBtn");
 
-    // Hide download button while validating
     topDownloadBtn.style.display = "none";
     topDownloadBtn.onclick = null;
 
     resultDiv.style.display = "block";
-    output.innerHTML = "<p>🔄 Validating, please wait...</p>";
+    output.innerHTML = "<p>Validating, please wait...</p>";
 
     try {
         const response = await fetch("/validate", {
@@ -85,17 +88,11 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
 
         if (data.error) {
             output.innerHTML = `<p class="error">${data.error}</p>`;
-            // Do not update fingerprint on error, so they can try again if it was a transient error (though usually logic error)
-            // Actually, if it's a validation error (like empty file), we might want to let them retry?
-            // But if the server says "error", it implies invalid request. 
-            // Better to NOT update fingerprint on error, so they can click again if needed (e.g. server glitch).
             return;
         }
 
-        // Update fingerprint only on successful validation response
         lastFingerprint = currentFingerprint;
 
-        // Summary
         output.innerHTML = `
           <h3>Validation Summary:</h3>
           <ul>
@@ -103,45 +100,54 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
             <li><strong>Passed:</strong> <span style="color:green">${data.summary.passed}</span></li>
             <li><strong>Failed:</strong> <span style="color:red">${data.summary.failed}</span></li>
           </ul>
-          <h3>Validations Performed:</h3>
         `;
 
-        // Detailed results
+        if (data.summary.global_validations && data.summary.global_validations.length) {
+            output.innerHTML += `
+              <h3>File-Level Validations:</h3>
+              <ul style="margin-top: 10px; padding-left: 20px;">
+                ${data.summary.global_validations.map(msg => (
+                    `<li class="${validationClass(msg)}">${msg}</li>`
+                )).join("")}
+              </ul>
+            `;
+        }
+
+        if (data.summary.warnings && data.summary.warnings.length) {
+            output.innerHTML += `
+              <h3>Warnings:</h3>
+              <ul style="margin-top: 10px; padding-left: 20px;">
+                ${data.summary.warnings.map(item => (
+                    `<li class="warning">Query ${item.query_index}: ${item.message}</li>`
+                )).join("")}
+              </ul>
+            `;
+        }
+
+        output.innerHTML += "<h3>Validations Performed:</h3>";
+
         data.results.forEach(item => {
             output.innerHTML += `
               <div class="result-card">
                   <pre><strong>Query:</strong>\n${item.query}</pre>
                   <ul style="margin-top: 10px; padding-left: 20px;">
-                    ${item.validations.map(v => {
-                let cls;
-                if (v.startsWith("❌")) {
-                    cls = "error";
-                } else if (v.startsWith("⚠️")) {
-                    cls = "warning";
-                } else {
-                    cls = "success";
-                }
-                return `<li class="${cls}">${v}</li>`;
-            }).join("")}
+                    ${item.validations.map(v => (
+                        `<li class="${validationClass(v)}">${v}</li>`
+                    )).join("")}
                   </ul>
               </div>
             `;
         });
 
-        // Enable PDF download button
         if (data.pdf_url) {
-            console.log("PDF URL received:", data.pdf_url);
             topDownloadBtn.style.display = "inline-block";
             topDownloadBtn.onclick = () => {
-                console.log("Downloading PDF:", data.pdf_url);
                 window.open(data.pdf_url, "_blank");
             };
         } else if (data.pdf_error) {
-            console.error("PDF generation error:", data.pdf_error);
-            output.innerHTML += `<p class="error">⚠️ Results validated, but PDF generation failed: ${data.pdf_error}</p>`;
+            output.innerHTML += `<p class="error">Results validated, but PDF generation failed: ${data.pdf_error}</p>`;
         }
-
     } catch (err) {
-        output.innerHTML = `<p class="error">❌ An error occurred.</p>`;
+        output.innerHTML = '<p class="error">An error occurred.</p>';
     }
 });

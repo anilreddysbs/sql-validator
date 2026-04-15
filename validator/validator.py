@@ -16,6 +16,10 @@ def validate_sql_text(text, checks_path="config/checks.json", backup_toggle=Fals
     total = 0
     passed = 0
     failed = 0
+    shared_context = {
+        "backup_toggle": backup_toggle,
+        "global_validations": []
+    }
 
     for idx, stmt in enumerate(statements):
         # defensive: ignore pure slash token if parser somehow left it standalone
@@ -24,7 +28,7 @@ def validate_sql_text(text, checks_path="config/checks.json", backup_toggle=Fals
         total += 1
         rule_messages = []
         failure_found = False
-        context = {"backup_toggle": backup_toggle}
+        context = shared_context
 
         for rule in rules:
             try:
@@ -48,10 +52,21 @@ def validate_sql_text(text, checks_path="config/checks.json", backup_toggle=Fals
             "validations": rule_messages
         })
 
+    warnings = []
+    for item in results:
+        for msg in item["validations"]:
+            if msg.startswith("âš ï¸") or msg.startswith("⚠️"):
+                warnings.append({
+                    "query_index": item["index"] + 1,
+                    "message": msg
+                })
+
     summary = {
         "total": total,
         "passed": passed,
-        "failed": failed
+        "failed": failed,
+        "warnings": warnings,
+        "global_validations": shared_context["global_validations"]
     }
 
     return results, summary

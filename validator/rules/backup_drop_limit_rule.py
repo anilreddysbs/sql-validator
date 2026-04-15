@@ -57,11 +57,11 @@ class BackupDropLimitRule(RuleBase):
 
         # Check against limit
         if drop_count > max_drops:
-            msgs.append(self.fail(
+            context.setdefault("global_validations", []).append(self.fail(
                 f"{name}: Maximum number of backup table drops exceeded. Please split your script or contact your administrator."
             ))
         elif drop_count > 0:
-            msgs.append(self.ok(
+            context.setdefault("global_validations", []).append(self.ok(
                 f"{name}: Backup table drop count is within allowed limits."
             ))
         
