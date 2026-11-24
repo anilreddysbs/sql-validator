@@ -1,5 +1,8 @@
 # SQL Script Validator
 
+
+> **Portfolio:** [anilreddysbs.vercel.app](https://anilreddysbs.vercel.app) · [GitHub profile](https://github.com/anilreddysbs)
+
 A Flask-based utility for checking SQL and PL/SQL scripts against a configurable set of database development rules. It accepts text scripts, reports rule results, and generates a downloadable PDF validation report.
 
 ## What it checks
